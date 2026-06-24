@@ -1,0 +1,75 @@
+@model IReadOnlyList<OpsDashboard.Application.Domains.DomainListItemDto>
+@{
+    ViewData["Title"] = "Domains";
+}
+
+<section class="page-heading">
+    <div>
+        <div class="page-eyebrow">Foundation</div>
+        <h1 class="page-title">Domains</h1>
+        <p class="page-subtitle">Manage business areas that organize future analytics datasets.</p>
+    </div>
+    <a class="btn btn-primary foundry-button" asp-action="Create"><i data-lucide="plus"></i><span>New domain</span></a>
+</section>
+
+@if (TempData["StatusMessage"] is string message)
+{
+    <div class="alert alert-success foundry-alert">@message</div>
+}
+
+<section class="panel">
+    <div class="panel-header">
+        <div>
+            <h2 class="panel-title">Domain registry</h2>
+            <p class="panel-subtitle">Archive domains when they should no longer receive new datasets.</p>
+        </div>
+        <span class="panel-badge">@Model.Count records</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Datasets</th>
+                <th>Created</th>
+                <th class="text-end">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var domain in Model)
+            {
+                <tr>
+                    <td>
+                        <a class="entity-link" asp-action="Details" asp-route-id="@domain.Id">@domain.Name</a>
+                        @if (!string.IsNullOrWhiteSpace(domain.Description))
+                        {
+                            <div class="table-muted">@domain.Description</div>
+                        }
+                    </td>
+                    <td><span class="status-pill status-@domain.Status.ToString().ToLowerInvariant()">@domain.Status</span></td>
+                    <td>@domain.DatasetCount</td>
+                    <td>@domain.CreatedDate.ToString("dd MMM yyyy")</td>
+                    <td class="text-end">
+                        <div class="table-actions">
+                            <a class="icon-button" asp-action="Edit" asp-route-id="@domain.Id" title="Edit domain" aria-label="Edit @domain.Name"><i data-lucide="pencil"></i></a>
+                            @if (domain.Status == OpsDashboard.Domain.Enums.DomainStatus.Active)
+                            {
+                                <form asp-action="Archive" asp-route-id="@domain.Id" method="post">
+                                    <button class="icon-button" type="submit" title="Archive domain" aria-label="Archive @domain.Name"><i data-lucide="archive"></i></button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-action="Restore" asp-route-id="@domain.Id" method="post">
+                                    <button class="icon-button" type="submit" title="Restore domain" aria-label="Restore @domain.Name"><i data-lucide="refresh-ccw"></i></button>
+                                </form>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>

@@ -1,0 +1,76 @@
+@model ExecutiveDashboardDto
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Executive Dashboard";
+}
+
+<div class="page-heading">
+    <div>
+        <div class="page-eyebrow">Command center</div>
+        <h1 class="page-title">Executive Dashboard</h1>
+        <p class="page-subtitle">A unified view of operational health, service delivery, and team performance.</p>
+    </div>
+    <div class="page-status">
+        <i data-lucide="circle-check"></i>
+        <span>Updated @(Model.LastUpdatedUtc?.ToString("dd MMM yyyy, HH:mm 'UTC'") ?? "Not available")</span>
+    </div>
+</div>
+
+<div class="kpi-grid">
+    @foreach (var kpi in Model.Kpis)
+    {
+        <article class="kpi-card status-@kpi.Status.ToString().ToLowerInvariant()">
+            <div class="kpi-head"><span class="kpi-name">@kpi.Name</span><span class="kpi-indicator" aria-label="@kpi.Status status"></span></div>
+            <div class="kpi-value">@kpi.Value <span>@kpi.Unit</span></div>
+            <div class="kpi-target"><i data-lucide="crosshair"></i> Target @kpi.Target @kpi.Unit</div>
+        </article>
+    }
+</div>
+
+<div class="dashboard-grid">
+    <section class="panel">
+        <div class="panel-header">
+            <div><h2 class="panel-title">Turnaround time trend</h2><p class="panel-subtitle">Average resolution time by month</p></div>
+            <span class="panel-badge">Hours</span>
+        </div>
+        <div class="chart-wrap"><canvas id="tatTrend"></canvas></div>
+    </section>
+    <section class="panel">
+        <div class="panel-header">
+            <div><h2 class="panel-title">Backlog trend</h2><p class="panel-subtitle">Open case volume over time</p></div>
+            <span class="panel-badge">Cases</span>
+        </div>
+        <div class="chart-wrap"><canvas id="backlogTrend"></canvas></div>
+    </section>
+    <section class="panel span-full">
+        <div class="panel-header">
+            <div><h2 class="panel-title">Team performance</h2><p class="panel-subtitle">Comparative performance across operational teams</p></div>
+            <span class="panel-badge">@Model.Teams.Count teams</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead><tr><th>Team</th><th>Avg TAT</th><th>SLA breach</th><th>Productivity</th><th>Backlog</th></tr></thead>
+                <tbody>
+                @foreach (var row in Model.Teams)
+                {
+                    <tr>
+                        <td><a class="entity-link" asp-action="Team" asp-route-id="@row.TeamId">@row.TeamName</a></td>
+                        <td>@row.AvgTatHours h</td>
+                        <td><span class="metric-pill">@row.SlaBreachRate%</span></td>
+                        <td>@row.Productivity cases/day</td>
+                        <td>@row.Backlog</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+<script src="~/js/dashboard.js" asp-append-version="true"></script>
+<script>
+    renderLineChart('tatTrend', @Html.Raw(JsonSerializer.Serialize(Model.TatTrend.Select(x => x.Label))), @Html.Raw(JsonSerializer.Serialize(Model.TatTrend.Select(x => x.Value))), 'Avg TAT');
+    renderLineChart('backlogTrend', @Html.Raw(JsonSerializer.Serialize(Model.BacklogTrend.Select(x => x.Label))), @Html.Raw(JsonSerializer.Serialize(Model.BacklogTrend.Select(x => x.Value))), 'Backlog');
+</script>
+}

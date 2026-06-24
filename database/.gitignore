@@ -1,0 +1,11 @@
+bin/
+obj/
+.vs/
+uploads/
+*.user
+*.suo
+appsettings.Development.json
+node_modules/
+*.db
+*.mdf
+*.ldf

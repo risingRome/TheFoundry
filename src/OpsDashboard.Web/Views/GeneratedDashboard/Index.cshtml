@@ -1,0 +1,130 @@
+@model OpsDashboard.Application.GeneratedDashboards.GeneratedDashboardDto
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Generated Dashboard";
+    var chartOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+}
+
+<section class="page-heading">
+    <div>
+        <div class="page-eyebrow">Auto dashboard generator</div>
+        <h1 class="page-title">@Model.DatasetName</h1>
+        <p class="page-subtitle">@Model.DomainName &middot; @Model.BusinessDomain &middot; Generated from detected entities and dimensions</p>
+    </div>
+    <div class="page-actions">
+        <a class="btn btn-outline-secondary" asp-controller="Insights" asp-action="Index">Back</a>
+        <a class="btn btn-primary foundry-button" asp-controller="Datasets" asp-action="Preview" asp-route-id="@Model.DatasetId"><i data-lucide="table"></i><span>Preview data</span></a>
+    </div>
+</section>
+
+<section class="kpi-grid">
+    @foreach (var kpi in Model.Kpis)
+    {
+        <article class="kpi-card status-green">
+            <div class="kpi-head">
+                <span class="kpi-name">@kpi.Title</span>
+                <span class="kpi-indicator"></span>
+            </div>
+            <div class="kpi-value">@kpi.Value</div>
+            <div class="kpi-target"><i data-lucide="sparkles"></i><span>@kpi.Description</span></div>
+        </article>
+    }
+</section>
+
+<div class="dashboard-grid generated-layout">
+    <section class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Trend charts</h2>
+                <p class="panel-subtitle">Generated when a measure is paired with a date dimension.</p>
+            </div>
+            <span class="panel-badge">@Model.TrendCharts.Count charts</span>
+        </div>
+        <div class="generated-chart-stack">
+            @if (Model.TrendCharts.Count == 0)
+            {
+                <p class="table-muted">No trend chart rules matched this dataset.</p>
+            }
+            @foreach (var chart in Model.TrendCharts)
+            {
+                <div class="generated-chart">
+                    <div class="mini-panel-header">
+                        <strong>@chart.Title</strong>
+                        <span>@chart.Subtitle</span>
+                    </div>
+                    <div class="chart-wrap compact"><canvas id="@chart.Id"></canvas></div>
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Comparison charts</h2>
+                <p class="panel-subtitle">Generated from measure and dimension pairings.</p>
+            </div>
+            <span class="panel-badge">@Model.ComparisonCharts.Count charts</span>
+        </div>
+        <div class="generated-chart-stack">
+            @if (Model.ComparisonCharts.Count == 0)
+            {
+                <p class="table-muted">No comparison chart rules matched this dataset.</p>
+            }
+            @foreach (var chart in Model.ComparisonCharts)
+            {
+                <div class="generated-chart">
+                    <div class="mini-panel-header">
+                        <strong>@chart.Title</strong>
+                        <span>@chart.Subtitle</span>
+                    </div>
+                    <div class="chart-wrap compact"><canvas id="@chart.Id"></canvas></div>
+                </div>
+            }
+        </div>
+    </section>
+</div>
+
+<section class="panel mt-3">
+    <div class="panel-header">
+        <div>
+            <h2 class="panel-title">Summary table</h2>
+            <p class="panel-subtitle">First 25 rows from the generated dashboard dataset.</p>
+        </div>
+        <span class="panel-badge">@Model.SummaryRows.Count rows</span>
+    </div>
+    <div class="table-responsive preview-table-wrap">
+        <table class="table align-middle preview-table">
+            <thead>
+            <tr>
+                @foreach (var column in Model.SummaryColumns)
+                {
+                    <th>@column</th>
+                }
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var row in Model.SummaryRows)
+            {
+                <tr>
+                    @foreach (var cell in row)
+                    {
+                        <td>@(string.IsNullOrWhiteSpace(cell) ? "-" : cell)</td>
+                    }
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/js/dashboard.js" asp-append-version="true"></script>
+    <script>
+        const generatedTrendCharts = @Html.Raw(JsonSerializer.Serialize(Model.TrendCharts, chartOptions));
+        const generatedComparisonCharts = @Html.Raw(JsonSerializer.Serialize(Model.ComparisonCharts, chartOptions));
+
+        generatedTrendCharts.forEach(chart => renderLineChart(chart.id, chart.labels, chart.values, chart.title));
+        generatedComparisonCharts.forEach(chart => renderBarChart(chart.id, chart.labels, chart.values, chart.title));
+    </script>
+}

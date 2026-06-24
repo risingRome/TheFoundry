@@ -1,0 +1,33 @@
+@model AgentDashboardDto
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Agent Dashboard";
+}
+
+<h1 class="h3 mb-1">@Model.AgentName</h1>
+<div class="text-secondary mb-3">@Model.TeamName</div>
+
+<div class="row g-3 mb-4">
+    @foreach (var kpi in Model.Kpis)
+    {
+        <div class="col-12 col-sm-6 col-xl">
+            <div class="kpi-card status-@kpi.Status.ToString().ToLowerInvariant()">
+                <div class="kpi-name">@kpi.Name</div>
+                <div class="kpi-value">@kpi.Value <span>@kpi.Unit</span></div>
+                <div class="kpi-target">Target @kpi.Target @kpi.Unit</div>
+            </div>
+        </div>
+    }
+</div>
+
+<section class="panel">
+    <h2 class="h5">Daily Closures</h2>
+    <canvas id="productivityTrend" height="120"></canvas>
+</section>
+
+@section Scripts {
+<script src="~/js/dashboard.js"></script>
+<script>
+    renderLineChart('productivityTrend', @Html.Raw(JsonSerializer.Serialize(Model.ProductivityTrend.Select(x => x.Label))), @Html.Raw(JsonSerializer.Serialize(Model.ProductivityTrend.Select(x => x.Value))), 'Closed Cases');
+</script>
+}

@@ -1,0 +1,32 @@
+@model OpsDashboard.Web.Models.DomainFormViewModel
+@{
+    ViewData["Title"] = "Edit Domain";
+}
+
+<section class="page-heading">
+    <div>
+        <div class="page-eyebrow">Foundation</div>
+        <h1 class="page-title">Edit domain</h1>
+        <p class="page-subtitle">Update the name or description for this analytics domain.</p>
+    </div>
+</section>
+
+<section class="panel form-panel">
+    <form asp-action="Edit" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <div class="mb-3">
+            <label asp-for="Name" class="form-label"></label>
+            <input asp-for="Name" class="form-control foundry-input" />
+            <span asp-validation-for="Name" class="text-danger small"></span>
+        </div>
+        <div class="mb-4">
+            <label asp-for="Description" class="form-label"></label>
+            <textarea asp-for="Description" class="form-control foundry-input" rows="4"></textarea>
+            <span asp-validation-for="Description" class="text-danger small"></span>
+        </div>
+        <div class="form-actions">
+            <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+            <button class="btn btn-primary foundry-button" type="submit"><i data-lucide="save"></i><span>Save changes</span></button>
+        </div>
+    </form>
+</section>

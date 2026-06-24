@@ -1,0 +1,27 @@
+@using Microsoft.AspNetCore.Identity
+@using OpsDashboard.Infrastructure.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+
+@if (SignInManager.IsSignedIn(User))
+{
+    <div class="dropdown">
+        <button class="user-menu" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="user-avatar">@(User.Identity?.Name?.Substring(0, 1).ToUpperInvariant() ?? "U")</span>
+            <span class="user-name d-none d-md-inline">@User.Identity?.Name</span>
+            <i data-lucide="chevron-down"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+                <form action="/Identity/Account/Logout" method="post">
+                    <button type="submit" class="dropdown-item"><i data-lucide="log-out"></i> Sign out</button>
+                </form>
+            </li>
+        </ul>
+    </div>
+}
+else
+{
+    <a class="sign-in-link" href="/Identity/Account/Login">
+        <i data-lucide="log-in"></i><span class="d-none d-sm-inline">Sign in</span>
+    </a>
+}

@@ -1,0 +1,115 @@
+@model IReadOnlyList<OpsDashboard.Application.Insights.DatasetInsightDto>
+@{
+    ViewData["Title"] = "Insights";
+}
+
+<section class="page-heading">
+    <div>
+        <div class="page-eyebrow">Business intelligence engine</div>
+        <h1 class="page-title">Insights</h1>
+        <p class="page-subtitle">Rule-based business understanding and executive recommendation output for uploaded datasets.</p>
+    </div>
+</section>
+
+@if (TempData["StatusMessage"] is string message)
+{
+    <div class="alert alert-success foundry-alert">@message</div>
+}
+
+@if (Model.Count == 0)
+{
+    <section class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">No dataset insights yet</h2>
+                <p class="panel-subtitle">Upload a CSV or Excel dataset to generate recommendations.</p>
+            </div>
+        </div>
+        <a class="btn btn-primary foundry-button" asp-controller="Datasets" asp-action="Index"><i data-lucide="upload"></i><span>Upload dataset</span></a>
+    </section>
+}
+else
+{
+    <section class="insight-grid">
+        @foreach (var insight in Model)
+        {
+            <article class="panel insight-card">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="panel-title">@insight.DatasetName</h2>
+                        <p class="panel-subtitle">@insight.DomainName &middot; Generated @insight.GeneratedAtUtc.ToString("dd MMM yyyy HH:mm") UTC</p>
+                    </div>
+                    <span class="status-pill status-profiled">@insight.BusinessDomain</span>
+                </div>
+
+                <div class="insight-section">
+                    <h3>Detected measures</h3>
+                    <div class="entity-chip-list">
+                        @foreach (var measure in insight.DetectedMeasures)
+                        {
+                            <span class="entity-chip">@measure.Entity <small>@measure.ColumnName</small></span>
+                        }
+                        @if (insight.DetectedMeasures.Count == 0)
+                        {
+                            <span class="table-muted">No business measures detected.</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="insight-section">
+                    <h3>Detected dimensions</h3>
+                    <div class="entity-chip-list">
+                        @foreach (var dimension in insight.DetectedDimensions)
+                        {
+                            <span class="entity-chip">@dimension.Entity <small>@dimension.ColumnName</small></span>
+                        }
+                        @if (insight.DetectedDimensions.Count == 0)
+                        {
+                            <span class="table-muted">No business dimensions detected.</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="insight-columns">
+                    <div class="insight-section">
+                        <h3>Recommended KPIs</h3>
+                        <ul class="insight-list">
+                            @foreach (var kpi in insight.RecommendedKpis)
+                            {
+                                <li>@kpi</li>
+                            }
+                        </ul>
+                    </div>
+                    <div class="insight-section">
+                        <h3>Recommended charts</h3>
+                        <ul class="insight-list">
+                            @foreach (var chart in insight.RecommendedCharts)
+                            {
+                                <li>@chart</li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="insight-section">
+                    <h3>Recommended dashboard layout</h3>
+                    <ol class="insight-list">
+                        @foreach (var layoutItem in insight.RecommendedDashboardLayout)
+                        {
+                            <li>@layoutItem</li>
+                        }
+                    </ol>
+                </div>
+
+                <div class="form-actions">
+                    <a class="btn btn-primary foundry-button" asp-controller="GeneratedDashboard" asp-action="Index" asp-route-datasetId="@insight.DatasetId"><i data-lucide="layout-dashboard"></i><span>Generate dashboard</span></a>
+                    <a class="btn btn-outline-secondary" asp-controller="Datasets" asp-action="Preview" asp-route-id="@insight.DatasetId">Preview</a>
+                    <form asp-action="Refresh" method="post">
+                        <input type="hidden" name="datasetId" value="@insight.DatasetId" />
+                        <button class="btn btn-primary foundry-button" type="submit"><i data-lucide="refresh-ccw"></i><span>Refresh</span></button>
+                    </form>
+                </div>
+            </article>
+        }
+    </section>
+}

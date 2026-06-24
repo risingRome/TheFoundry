@@ -1,0 +1,127 @@
+@model OpsDashboard.Application.Datasets.DatasetPreviewDto
+@{
+    ViewData["Title"] = "Dataset Preview";
+}
+
+<section class="page-heading">
+    <div>
+        <div class="page-eyebrow">Dataset explorer</div>
+        <h1 class="page-title">@Model.DatasetName</h1>
+        <p class="page-subtitle">@Model.DomainName &middot; @Model.SourceType &middot; Showing first @Model.Rows.Count rows</p>
+    </div>
+    <div class="page-actions">
+        <a class="btn btn-outline-secondary" asp-action="Index">Back</a>
+        <a class="btn btn-primary foundry-button" asp-action="Details" asp-route-id="@Model.Id"><i data-lucide="bar-chart-3"></i><span>Profile</span></a>
+    </div>
+</section>
+
+<div class="dashboard-grid preview-layout">
+    <section class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Schema viewer</h2>
+                <p class="panel-subtitle">Detected column types and missing values.</p>
+            </div>
+            <span class="panel-badge">@Model.Schema.Count columns</span>
+        </div>
+        <div class="table-responsive schema-table-wrap">
+            <table class="table align-middle">
+                <thead>
+                <tr>
+                    <th>Column</th>
+                    <th>Type</th>
+                    <th>Missing</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var column in Model.Schema)
+                {
+                    <tr>
+                        <td><span class="entity-link">@column.Name</span></td>
+                        <td><span class="status-pill status-type">@column.DetectedType</span></td>
+                        <td>@column.MissingValues</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Statistics</h2>
+                <p class="panel-subtitle">Numeric and text summaries from the stored dataset.</p>
+            </div>
+        </div>
+        <div class="table-responsive schema-table-wrap">
+            <table class="table align-middle">
+                <thead>
+                <tr>
+                    <th>Column</th>
+                    <th>Type</th>
+                    <th>Min</th>
+                    <th>Max</th>
+                    <th>Avg</th>
+                    <th>Sum</th>
+                    <th>Distinct</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var stat in Model.Statistics)
+                {
+                    <tr>
+                        <td><span class="entity-link">@stat.ColumnName</span></td>
+                        <td>@stat.DetectedType</td>
+                        <td>@FormatDecimal(stat.Min)</td>
+                        <td>@FormatDecimal(stat.Max)</td>
+                        <td>@FormatDecimal(stat.Average)</td>
+                        <td>@FormatDecimal(stat.Sum)</td>
+                        <td>@(stat.DistinctCount?.ToString() ?? "-")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<section class="panel mt-3">
+    <div class="panel-header">
+        <div>
+            <h2 class="panel-title">Data preview</h2>
+            <p class="panel-subtitle">First 100 rows from the uploaded file.</p>
+        </div>
+        <span class="panel-badge">@Model.Rows.Count rows</span>
+    </div>
+    <div class="table-responsive preview-table-wrap">
+        <table class="table align-middle preview-table">
+            <thead>
+            <tr>
+                @foreach (var column in Model.Columns)
+                {
+                    <th>@column</th>
+                }
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var row in Model.Rows)
+            {
+                <tr>
+                    @foreach (var cell in row)
+                    {
+                        <td>@(string.IsNullOrWhiteSpace(cell) ? "-" : cell)</td>
+                    }
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+@functions {
+    private static string FormatDecimal(decimal? value)
+    {
+        return value.HasValue ? value.Value.ToString("0.##") : "-";
+    }
+}

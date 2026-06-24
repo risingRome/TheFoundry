@@ -1,0 +1,65 @@
+@model TeamDashboardDto
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Team Dashboard";
+}
+
+<div class="page-heading">
+    <div>
+        <div class="page-eyebrow">Team performance</div>
+        <h1 class="page-title">@Model.TeamName</h1>
+        <p class="page-subtitle">Operational throughput, service quality, and individual contribution.</p>
+    </div>
+    <div class="page-status"><i data-lucide="activity"></i><span>Performance view</span></div>
+</div>
+
+<div class="kpi-grid">
+    @foreach (var kpi in Model.Kpis)
+    {
+        <article class="kpi-card status-@kpi.Status.ToString().ToLowerInvariant()">
+            <div class="kpi-head"><span class="kpi-name">@kpi.Name</span><span class="kpi-indicator" aria-label="@kpi.Status status"></span></div>
+            <div class="kpi-value">@kpi.Value <span>@kpi.Unit</span></div>
+            <div class="kpi-target"><i data-lucide="crosshair"></i> Target @kpi.Target @kpi.Unit</div>
+        </article>
+    }
+</div>
+
+<div class="dashboard-grid team-grid">
+    <section class="panel">
+        <div class="panel-header">
+            <div><h2 class="panel-title">Aging buckets</h2><p class="panel-subtitle">Open cases by elapsed time</p></div>
+            <span class="panel-badge">Cases</span>
+        </div>
+        <div class="chart-wrap compact"><canvas id="agingBuckets"></canvas></div>
+    </section>
+    <section class="panel">
+        <div class="panel-header">
+            <div><h2 class="panel-title">Agent leaderboard</h2><p class="panel-subtitle">Ranked by closed case volume</p></div>
+            <span class="panel-badge">@Model.Agents.Count agents</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead><tr><th>Agent</th><th>Closed</th><th>Productivity</th><th>Avg TAT</th><th>SLA breach</th></tr></thead>
+                <tbody>
+                @foreach (var row in Model.Agents)
+                {
+                    <tr>
+                        <td><a class="entity-link" asp-action="Agent" asp-route-id="@row.AgentId">@row.AgentName</a></td>
+                        <td><span class="metric-pill">@row.ClosedCases</span></td>
+                        <td>@row.Productivity</td>
+                        <td>@row.AvgTatHours h</td>
+                        <td>@row.SlaBreachRate%</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+<script src="~/js/dashboard.js" asp-append-version="true"></script>
+<script>
+    renderBarChart('agingBuckets', @Html.Raw(JsonSerializer.Serialize(Model.AgingBuckets.Select(x => x.Bucket))), @Html.Raw(JsonSerializer.Serialize(Model.AgingBuckets.Select(x => x.Count))), 'Open Cases');
+</script>
+}

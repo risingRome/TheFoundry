@@ -1,0 +1,108 @@
+@model OpsDashboard.Web.Models.DatasetUploadViewModel
+@{
+    ViewData["Title"] = "Datasets";
+    var datasets = ViewData["Datasets"] as IReadOnlyList<OpsDashboard.Application.Datasets.DatasetListItemDto> ?? Array.Empty<OpsDashboard.Application.Datasets.DatasetListItemDto>();
+}
+
+<section class="page-heading">
+    <div>
+        <div class="page-eyebrow">Foundation</div>
+        <h1 class="page-title">Datasets</h1>
+        <p class="page-subtitle">Register source files and profile quality signals for future analytics features.</p>
+    </div>
+</section>
+
+@if (TempData["StatusMessage"] is string message)
+{
+    <div class="alert alert-success foundry-alert">@message</div>
+}
+
+<div class="dashboard-grid foundation-layout">
+    <section class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Upload dataset</h2>
+                <p class="panel-subtitle">CSV and Excel files are profiled automatically after upload.</p>
+            </div>
+        </div>
+        <form asp-action="Upload" method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <div class="mb-3">
+                <label asp-for="DomainId" class="form-label"></label>
+                <select asp-for="DomainId" asp-items="Model.Domains" class="form-select foundry-input">
+                    <option value="">Select domain</option>
+                </select>
+                <span asp-validation-for="DomainId" class="text-danger small"></span>
+            </div>
+            <div class="mb-4">
+                <label asp-for="File" class="form-label"></label>
+                <input asp-for="File" class="form-control foundry-input" accept=".csv,.xlsx" />
+                <span asp-validation-for="File" class="text-danger small"></span>
+            </div>
+            <button class="btn btn-primary foundry-button" type="submit"><i data-lucide="upload"></i><span>Upload and profile</span></button>
+        </form>
+    </section>
+
+    <section class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Profile summary</h2>
+                <p class="panel-subtitle">Latest dataset quality indicators.</p>
+            </div>
+            <span class="panel-badge">@datasets.Count records</span>
+        </div>
+        <div class="foundation-summary">
+            <div><span>Total rows</span><strong>@datasets.Sum(x => x.RowCount)</strong></div>
+            <div><span>Total columns</span><strong>@datasets.Sum(x => x.ColumnCount)</strong></div>
+            <div><span>Average quality</span><strong>@(datasets.Count == 0 ? "0%" : $"{datasets.Average(x => x.DatasetQualityScore):0.##}%")</strong></div>
+        </div>
+    </section>
+</div>
+
+<section class="panel mt-3">
+    <div class="panel-header">
+        <div>
+            <h2 class="panel-title">Dataset registry</h2>
+            <p class="panel-subtitle">Uploaded files, ownership domains, and profiling output.</p>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+            <tr>
+                <th>Dataset</th>
+                <th>Domain</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Rows</th>
+                <th>Columns</th>
+                <th>Quality</th>
+                <th>Uploaded</th>
+                <th class="text-end">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var dataset in datasets)
+            {
+                <tr>
+                    <td><a class="entity-link" asp-action="Details" asp-route-id="@dataset.Id">@dataset.DatasetName</a></td>
+                    <td><a class="entity-link" asp-controller="Domains" asp-action="Details" asp-route-id="@dataset.DomainId">@dataset.DomainName</a></td>
+                    <td>@dataset.SourceType</td>
+                    <td><span class="status-pill status-profiled">@dataset.Status</span></td>
+                    <td>@dataset.RowCount</td>
+                    <td>@dataset.ColumnCount</td>
+                    <td><span class="metric-pill">@dataset.DatasetQualityScore.ToString("0.##")%</span></td>
+                    <td>@dataset.UploadDate.ToString("dd MMM yyyy")</td>
+                    <td class="text-end">
+                        <div class="table-actions">
+                            <a class="icon-button" asp-controller="GeneratedDashboard" asp-action="Index" asp-route-datasetId="@dataset.Id" title="Generate dashboard" aria-label="Generate dashboard for @dataset.DatasetName"><i data-lucide="layout-dashboard"></i></a>
+                            <a class="icon-button" asp-action="Preview" asp-route-id="@dataset.Id" title="Preview dataset" aria-label="Preview @dataset.DatasetName"><i data-lucide="table"></i></a>
+                            <a class="icon-button" asp-action="Details" asp-route-id="@dataset.Id" title="View profile" aria-label="View profile for @dataset.DatasetName"><i data-lucide="bar-chart-3"></i></a>
+                        </div>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>

@@ -1,0 +1,69 @@
+@model OpsDashboard.Application.Datasets.DatasetDetailsDto
+@{
+    ViewData["Title"] = "Dataset Details";
+}
+
+<section class="page-heading">
+    <div>
+        <div class="page-eyebrow">Dataset profile</div>
+        <h1 class="page-title">@Model.DatasetName</h1>
+        <p class="page-subtitle">@Model.DomainName · @Model.SourceType · Uploaded @Model.UploadDate.ToString("dd MMM yyyy HH:mm") UTC</p>
+    </div>
+    <div class="page-actions">
+        <a class="btn btn-outline-secondary" asp-action="Index">Back</a>
+        <a class="btn btn-primary foundry-button" asp-controller="GeneratedDashboard" asp-action="Index" asp-route-datasetId="@Model.Id"><i data-lucide="layout-dashboard"></i><span>Generate dashboard</span></a>
+        <a class="btn btn-primary foundry-button" asp-action="Preview" asp-route-id="@Model.Id"><i data-lucide="table"></i><span>Preview</span></a>
+    </div>
+</section>
+
+<section class="kpi-grid foundation-grid">
+    <article class="kpi-card status-green">
+        <div class="kpi-head"><span class="kpi-name">Rows</span><span class="kpi-indicator"></span></div>
+        <div class="kpi-value">@Model.RowCount</div>
+    </article>
+    <article class="kpi-card status-green">
+        <div class="kpi-head"><span class="kpi-name">Columns</span><span class="kpi-indicator"></span></div>
+        <div class="kpi-value">@Model.ColumnCount</div>
+    </article>
+    <article class="kpi-card status-amber">
+        <div class="kpi-head"><span class="kpi-name">Missing values</span><span class="kpi-indicator"></span></div>
+        <div class="kpi-value">@Model.MissingValues</div>
+    </article>
+    <article class="kpi-card status-amber">
+        <div class="kpi-head"><span class="kpi-name">Duplicate rows</span><span class="kpi-indicator"></span></div>
+        <div class="kpi-value">@Model.DuplicateRows</div>
+    </article>
+    <article class="kpi-card status-green">
+        <div class="kpi-head"><span class="kpi-name">Quality score</span><span class="kpi-indicator"></span></div>
+        <div class="kpi-value">@Model.DatasetQualityScore.ToString("0.##")<span>%</span></div>
+    </article>
+</section>
+
+<div class="dashboard-grid foundation-layout">
+    <section class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Column classification</h2>
+                <p class="panel-subtitle">Detected types from the profiled file.</p>
+            </div>
+        </div>
+        <div class="foundation-summary">
+            <div><span>Numeric</span><strong>@Model.NumericColumns</strong></div>
+            <div><span>Date</span><strong>@Model.DateColumns</strong></div>
+            <div><span>Text</span><strong>@Model.TextColumns</strong></div>
+        </div>
+    </section>
+    <section class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Registry details</h2>
+                <p class="panel-subtitle">Stored source metadata for this dataset.</p>
+            </div>
+        </div>
+        <dl class="details-list">
+            <dt>Status</dt><dd>@Model.Status</dd>
+            <dt>Domain</dt><dd><a asp-controller="Domains" asp-action="Details" asp-route-id="@Model.DomainId">@Model.DomainName</a></dd>
+            <dt>File path</dt><dd>@Model.FilePath</dd>
+        </dl>
+    </section>
+</div>

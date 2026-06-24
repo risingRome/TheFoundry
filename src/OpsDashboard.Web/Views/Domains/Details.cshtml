@@ -1,0 +1,67 @@
+@model OpsDashboard.Application.Domains.DomainDetailsDto
+@{
+    ViewData["Title"] = "Domain Details";
+}
+
+<section class="page-heading">
+    <div>
+        <div class="page-eyebrow">Foundation</div>
+        <h1 class="page-title">@Model.Name</h1>
+        <p class="page-subtitle">@(!string.IsNullOrWhiteSpace(Model.Description) ? Model.Description : "No description provided.")</p>
+    </div>
+    <div class="page-actions">
+        <a class="btn btn-outline-secondary" asp-action="Index">Back</a>
+        <a class="btn btn-primary foundry-button" asp-action="Edit" asp-route-id="@Model.Id"><i data-lucide="pencil"></i><span>Edit</span></a>
+    </div>
+</section>
+
+<section class="kpi-grid foundation-grid">
+    <article class="kpi-card status-green">
+        <div class="kpi-head"><span class="kpi-name">Status</span><span class="kpi-indicator"></span></div>
+        <div class="kpi-value">@Model.Status</div>
+    </article>
+    <article class="kpi-card status-green">
+        <div class="kpi-head"><span class="kpi-name">Datasets</span><span class="kpi-indicator"></span></div>
+        <div class="kpi-value">@Model.Datasets.Count</div>
+    </article>
+    <article class="kpi-card status-green">
+        <div class="kpi-head"><span class="kpi-name">Created</span><span class="kpi-indicator"></span></div>
+        <div class="kpi-value compact-value">@Model.CreatedDate.ToString("dd MMM yyyy")</div>
+    </article>
+</section>
+
+<section class="panel">
+    <div class="panel-header">
+        <div>
+            <h2 class="panel-title">Datasets in this domain</h2>
+            <p class="panel-subtitle">Uploaded files and profiling results linked to @Model.Name.</p>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+            <tr>
+                <th>Dataset</th>
+                <th>Type</th>
+                <th>Rows</th>
+                <th>Columns</th>
+                <th>Quality</th>
+                <th>Uploaded</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var dataset in Model.Datasets)
+            {
+                <tr>
+                    <td><a class="entity-link" asp-controller="Datasets" asp-action="Details" asp-route-id="@dataset.Id">@dataset.DatasetName</a></td>
+                    <td>@dataset.SourceType</td>
+                    <td>@dataset.RowCount</td>
+                    <td>@dataset.ColumnCount</td>
+                    <td><span class="metric-pill">@dataset.DatasetQualityScore.ToString("0.##")%</span></td>
+                    <td>@dataset.UploadDate.ToString("dd MMM yyyy")</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
