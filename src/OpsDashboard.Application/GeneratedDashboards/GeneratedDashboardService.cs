@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using OpsDashboard.Application.Abstractions;
+using OpsDashboard.Application.Analytics;
 using OpsDashboard.Application.Insights;
 
 namespace OpsDashboard.Application.GeneratedDashboards;
@@ -9,8 +10,9 @@ public sealed class GeneratedDashboardService(
     IEnumerable<IDatasetProfileReader> readers,
     IBusinessIntelligenceService intelligence) : IGeneratedDashboardService
 {
-    public async Task<GeneratedDashboardDto?> GenerateAsync(int datasetId, CancellationToken cancellationToken = default)
+    public async Task<GeneratedDashboardDto?> GenerateAsync(int datasetId, AnalyticsFilterDto? filters = null, CancellationToken cancellationToken = default)
     {
+        filters ??= AnalyticsFilterDto.Empty;
         var dataset = await db.Datasets
             .AsNoTracking()
             .Where(x => x.Id == datasetId)
@@ -58,21 +60,175 @@ public sealed class GeneratedDashboardService(
         var index = columns
             .Select((name, position) => new { name, position })
             .ToDictionary(x => x.name, x => x.position, StringComparer.OrdinalIgnoreCase);
+        var filterColumns = ResolveFilterColumns(insight, columns);
+        var filteredRows = ApplyFilters(rows, index, filterColumns, filters).ToList();
+        var filterState = BuildFilterState(dataset.DatasetName, insight.BusinessDomain, rows, index, filterColumns, filters);
 
-        var kpis = BuildKpis(insight, rows, index);
-        var trendCharts = BuildTrendCharts(insight, rows, index);
-        var comparisonCharts = BuildComparisonCharts(insight, rows, index);
+        var kpis = BuildKpis(insight, filteredRows, index);
+        var trendCharts = BuildTrendCharts(insight, filteredRows, index);
+        var comparisonCharts = BuildComparisonCharts(insight, filteredRows, index);
 
         return new GeneratedDashboardDto(
             dataset.Id,
             dataset.DatasetName,
             dataset.DomainName,
             insight.BusinessDomain,
+            filterState,
+            filteredRows.Count,
             kpis,
             trendCharts,
             comparisonCharts,
             columns,
-            rows.Take(25).ToList());
+            filteredRows.Take(25).ToList());
+    }
+
+    private static IReadOnlyDictionary<string, string> ResolveFilterColumns(DatasetInsightDto insight, IReadOnlyList<string> columns)
+    {
+        var filterColumns = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        AddFilterColumn(filterColumns, "date", FindColumn(insight.DetectedDimensions, "Date"));
+        AddFilterColumn(filterColumns, "department", FindColumn(insight.DetectedDimensions, "Department") ?? FindColumnByName(columns, "department", "dept"));
+        AddFilterColumn(filterColumns, "region", FindColumn(insight.DetectedDimensions, "Region") ?? FindColumnByName(columns, "region", "territory", "market", "country", "state"));
+        AddFilterColumn(filterColumns, "employee", FindColumn(insight.DetectedDimensions, "Employee") ?? FindColumnByName(columns, "employee", "agent", "staff", "rep"));
+        AddFilterColumn(filterColumns, "product", FindColumn(insight.DetectedDimensions, "Product") ?? FindColumnByName(columns, "product", "sku", "item"));
+        AddFilterColumn(filterColumns, "category", FindColumnByName(columns, "category", "segment", "class"));
+        return filterColumns;
+    }
+
+    private static void AddFilterColumn(IDictionary<string, string> filterColumns, string key, string? column)
+    {
+        if (!string.IsNullOrWhiteSpace(column))
+        {
+            filterColumns[key] = column;
+        }
+    }
+
+    private static string? FindColumnByName(IEnumerable<string> columns, params string[] keywords)
+    {
+        return columns.FirstOrDefault(column =>
+        {
+            var normalized = Normalize(column);
+            return keywords.Any(keyword => normalized.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+        });
+    }
+
+    private static IEnumerable<IReadOnlyList<string>> ApplyFilters(
+        IEnumerable<IReadOnlyList<string>> rows,
+        IReadOnlyDictionary<string, int> index,
+        IReadOnlyDictionary<string, string> filterColumns,
+        AnalyticsFilterDto filters)
+    {
+        return rows.Where(row =>
+        {
+            if (filterColumns.TryGetValue("date", out var dateColumn) && index.TryGetValue(dateColumn, out var dateIndex))
+            {
+                var value = ReadDate(row, dateIndex);
+                if (filters.From.HasValue && (!value.HasValue || DateOnly.FromDateTime(value.Value) < filters.From.Value))
+                {
+                    return false;
+                }
+
+                if (filters.To.HasValue && (!value.HasValue || DateOnly.FromDateTime(value.Value) > filters.To.Value))
+                {
+                    return false;
+                }
+            }
+
+            return MatchesTextFilter(row, index, filterColumns, "department", filters.Department)
+                && MatchesTextFilter(row, index, filterColumns, "region", filters.Region)
+                && MatchesTextFilter(row, index, filterColumns, "employee", filters.Employee)
+                && MatchesTextFilter(row, index, filterColumns, "product", filters.Product)
+                && MatchesTextFilter(row, index, filterColumns, "category", filters.Category);
+        });
+    }
+
+    private static bool MatchesTextFilter(
+        IReadOnlyList<string> row,
+        IReadOnlyDictionary<string, int> index,
+        IReadOnlyDictionary<string, string> filterColumns,
+        string key,
+        string? selectedValue)
+    {
+        if (string.IsNullOrWhiteSpace(selectedValue) || !filterColumns.TryGetValue(key, out var column) || !index.TryGetValue(column, out var position))
+        {
+            return true;
+        }
+
+        return string.Equals(ReadText(row, position), selectedValue, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static AnalyticsFilterStateDto BuildFilterState(
+        string datasetName,
+        string businessDomain,
+        IReadOnlyList<IReadOnlyList<string>> rows,
+        IReadOnlyDictionary<string, int> index,
+        IReadOnlyDictionary<string, string> filterColumns,
+        AnalyticsFilterDto filters)
+    {
+        var options = new List<AnalyticsFilterOptionDto>();
+        if (filterColumns.TryGetValue("date", out var dateColumn))
+        {
+            options.Add(new AnalyticsFilterOptionDto("date", "Date", dateColumn, Array.Empty<string>(), null));
+        }
+        AddOption(options, rows, index, filterColumns, "department", "Department", filters.Department);
+        AddOption(options, rows, index, filterColumns, "region", "Region", filters.Region);
+        AddOption(options, rows, index, filterColumns, "employee", "Employee", filters.Employee);
+        AddOption(options, rows, index, filterColumns, "product", "Product", filters.Product);
+        AddOption(options, rows, index, filterColumns, "category", "Category", filters.Category);
+
+        var activeParts = new List<string>();
+        AddActivePart(activeParts, "Department", filters.Department);
+        AddActivePart(activeParts, "Region", filters.Region);
+        AddActivePart(activeParts, "Employee", filters.Employee);
+        AddActivePart(activeParts, "Product", filters.Product);
+        AddActivePart(activeParts, "Category", filters.Category);
+        if (filters.From.HasValue || filters.To.HasValue)
+        {
+            activeParts.Add($"between {filters.From?.ToString("MMM yyyy") ?? "start"} and {filters.To?.ToString("MMM yyyy") ?? "today"}");
+        }
+
+        var summary = activeParts.Count == 0
+            ? $"Showing all {businessDomain} data from {datasetName}"
+            : $"Showing {businessDomain} data for {string.Join(", ", activeParts)}";
+
+        return new AnalyticsFilterStateDto(
+            filters.From,
+            filters.To,
+            options,
+            summary,
+            activeParts.Count > 0);
+    }
+
+    private static void AddOption(
+        ICollection<AnalyticsFilterOptionDto> options,
+        IReadOnlyList<IReadOnlyList<string>> rows,
+        IReadOnlyDictionary<string, int> index,
+        IReadOnlyDictionary<string, string> filterColumns,
+        string key,
+        string label,
+        string? selectedValue)
+    {
+        if (!filterColumns.TryGetValue(key, out var column) || !index.TryGetValue(column, out var position))
+        {
+            return;
+        }
+
+        var values = rows
+            .Select(row => ReadText(row, position))
+            .Where(value => value.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(value => value)
+            .Take(100)
+            .ToList();
+
+        options.Add(new AnalyticsFilterOptionDto(key, label, column, values, selectedValue));
+    }
+
+    private static void AddActivePart(ICollection<string> parts, string label, string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            parts.Add($"{value} {label}");
+        }
     }
 
     private static IReadOnlyList<GeneratedKpiCardDto> BuildKpis(
@@ -248,6 +404,11 @@ public sealed class GeneratedDashboardService(
     private static string ReadText(IReadOnlyList<string> row, int index)
     {
         return index < row.Count ? row[index].Trim() : string.Empty;
+    }
+
+    private static string Normalize(string value)
+    {
+        return value.Replace("_", " ", StringComparison.Ordinal).Replace("-", " ", StringComparison.Ordinal).ToLowerInvariant();
     }
 
     private static string FormatNumber(decimal value)

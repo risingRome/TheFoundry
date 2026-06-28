@@ -60,11 +60,14 @@
             <a class="@ControllerNavClass("Insights")" asp-controller="Insights" asp-action="Index">
                 <i data-lucide="sparkles"></i><span>Insights</span>
             </a>
+            <a class="@ControllerNavClass("Reports")" asp-controller="Reports" asp-action="Index">
+                <i data-lucide="file-text"></i><span>Reports</span>
+            </a>
         </nav>
 
         <div class="sidebar-foot">
             <div class="environment-badge"><span></span> Operational data live</div>
-            <div class="sidebar-version">The Foundry <span>v1.4.0</span></div>
+            <div class="sidebar-version">The Foundry <span>v1.6.0</span></div>
         </div>
     </aside>
 
@@ -91,7 +94,7 @@
 
         <footer class="app-footer">
             <span>&copy; @DateTime.UtcNow.Year The Foundry</span>
-            <span>Business Intelligence Platform &middot; Version 1.4.0</span>
+            <span>Business Intelligence Platform &middot; Version 1.6.0</span>
         </footer>
     </div>
 </div>

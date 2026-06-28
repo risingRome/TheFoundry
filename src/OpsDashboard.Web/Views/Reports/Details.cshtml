@@ -1,0 +1,190 @@
+@model OpsDashboard.Application.Reports.ExecutiveReportDto
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Executive Report";
+    var chartOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+}
+
+<section class="page-heading report-actions-bar">
+    <div>
+        <div class="page-eyebrow">Executive report</div>
+        <h1 class="page-title">@Model.DatasetName</h1>
+        <p class="page-subtitle">@Model.DomainName &middot; @Model.SourceType &middot; Generated @Model.GeneratedAtUtc.ToString("dd MMM yyyy HH:mm") UTC</p>
+    </div>
+    <div class="page-actions">
+        <a class="btn btn-outline-secondary" asp-action="Index">Back</a>
+        <a class="btn btn-primary foundry-button" asp-action="Pdf" asp-route-datasetId="@Model.DatasetId" asp-route-from="@Model.Filters.From" asp-route-to="@Model.Filters.To" asp-route-department="@Selected("department")" asp-route-region="@Selected("region")" asp-route-employee="@Selected("employee")" asp-route-product="@Selected("product")" asp-route-category="@Selected("category")"><i data-lucide="download"></i><span>Download PDF</span></a>
+        <a class="btn btn-primary foundry-button" asp-action="Docx" asp-route-datasetId="@Model.DatasetId" asp-route-from="@Model.Filters.From" asp-route-to="@Model.Filters.To" asp-route-department="@Selected("department")" asp-route-region="@Selected("region")" asp-route-employee="@Selected("employee")" asp-route-product="@Selected("product")" asp-route-category="@Selected("category")"><i data-lucide="file-down"></i><span>Download DOCX</span></a>
+        <button class="btn btn-outline-secondary" type="button" onclick="window.print()"><i data-lucide="printer"></i> Print Report</button>
+    </div>
+</section>
+
+<section class="filter-banner">
+    <div><i data-lucide="filter"></i><span>@Model.Filters.Summary</span></div>
+    @if (Model.Filters.HasActiveFilters)
+    {
+        <a class="btn btn-outline-secondary btn-sm" asp-controller="Reports" asp-action="Details" asp-route-datasetId="@Model.DatasetId">Reset Filters</a>
+    }
+</section>
+
+<section class="panel filter-panel report-actions-bar">
+    <form method="get" action="/Reports/@Model.DatasetId">
+        <div class="filter-grid">
+            @if (HasFilter("date"))
+            {
+                <div>
+                    <label class="form-label" for="from">From</label>
+                    <input class="form-control foundry-input" id="from" name="from" type="date" value="@Model.Filters.From?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div>
+                    <label class="form-label" for="to">To</label>
+                    <input class="form-control foundry-input" id="to" name="to" type="date" value="@Model.Filters.To?.ToString("yyyy-MM-dd")" />
+                </div>
+            }
+            @foreach (var option in Model.Filters.Options.Where(x => x.Key != "date"))
+            {
+                <div>
+                    <label class="form-label" for="@option.Key">@option.Label</label>
+                    <select class="form-select foundry-input" id="@option.Key" name="@option.Key">
+                        <option value="">All @option.Label</option>
+                        @foreach (var value in option.Values)
+                        {
+                            <option value="@value" selected="@(string.Equals(option.SelectedValue, value, StringComparison.OrdinalIgnoreCase) ? "selected" : null)">@value</option>
+                        }
+                    </select>
+                </div>
+            }
+        </div>
+        <div class="form-actions mt-3">
+            <a class="btn btn-outline-secondary" asp-controller="Reports" asp-action="Details" asp-route-datasetId="@Model.DatasetId">Reset Filters</a>
+            <button class="btn btn-primary foundry-button" type="submit"><i data-lucide="sliders-horizontal"></i><span>Apply Filters</span></button>
+        </div>
+    </form>
+</section>
+
+<article class="report-document">
+    <header class="report-cover">
+        <div class="brand-mark" aria-hidden="true"><i data-lucide="layers-3"></i></div>
+        <div>
+            <h2>The Foundry Executive Report</h2>
+            <p>Business Intelligence Platform</p>
+        </div>
+    </header>
+
+    <section class="panel report-section">
+        <h3>1. Dataset Information</h3>
+        <dl class="details-list">
+            <dt>Dataset</dt><dd>@Model.DatasetName</dd>
+            <dt>Domain</dt><dd>@Model.DomainName</dd>
+            <dt>File type</dt><dd>@Model.SourceType</dd>
+            <dt>Upload date</dt><dd>@Model.UploadDate.ToString("dd MMM yyyy HH:mm") UTC</dd>
+            <dt>Report date</dt><dd>@Model.GeneratedAtUtc.ToString("dd MMM yyyy HH:mm") UTC</dd>
+        </dl>
+    </section>
+
+    <section class="kpi-grid foundation-grid">
+        <article class="kpi-card status-green"><div class="kpi-name">Total Records</div><div class="kpi-value">@Model.Summary.TotalRecords.ToString("N0")</div></article>
+        <article class="kpi-card status-green"><div class="kpi-name">Total Columns</div><div class="kpi-value">@Model.Summary.TotalColumns.ToString("N0")</div></article>
+        <article class="kpi-card status-green"><div class="kpi-name">Quality Score</div><div class="kpi-value">@Model.Summary.DataQualityScore.ToString("0.##")<span>%</span></div></article>
+        <article class="kpi-card status-amber"><div class="kpi-name">Missing Values</div><div class="kpi-value">@Model.Summary.MissingValues.ToString("N0")</div></article>
+        <article class="kpi-card status-amber"><div class="kpi-name">Duplicate Rows</div><div class="kpi-value">@Model.Summary.DuplicateRows.ToString("N0")</div></article>
+    </section>
+
+    <section class="panel report-section">
+        <h3>3. KPI Summary</h3>
+        <div class="report-kpi-list">
+            @foreach (var kpi in Model.Kpis)
+            {
+                <div><strong>@kpi.Title</strong><span>@kpi.Value</span><small>@kpi.Description</small></div>
+            }
+        </div>
+    </section>
+
+    <section class="panel report-section">
+        <h3>4. Trend Analysis</h3>
+        <ul class="insight-list">@foreach (var item in Model.TrendAnalysis) { <li>@item</li> }</ul>
+    </section>
+
+    <section class="panel report-section">
+        <h3>Charts</h3>
+        <div class="generated-chart-stack">
+            @foreach (var chart in Model.Charts)
+            {
+                <div class="generated-chart">
+                    <div class="mini-panel-header">
+                        <strong>@chart.Title</strong>
+                        <span>@chart.Rule</span>
+                    </div>
+                    <div class="chart-wrap compact"><canvas id="@chart.Id"></canvas></div>
+                </div>
+            }
+            @if (Model.Charts.Count == 0)
+            {
+                <p class="table-muted">No generated dashboard chart rules matched this dataset.</p>
+            }
+        </div>
+    </section>
+
+    <section class="panel report-section">
+        <h3>5. Dimension Performance</h3>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead><tr><th>Dimension</th><th>Rank</th><th>Category</th><th>Value</th></tr></thead>
+                <tbody>
+                @foreach (var ranking in Model.DimensionRankings)
+                {
+                    foreach (var row in ranking.Rows)
+                    {
+                        <tr><td>@ranking.DimensionName</td><td>@row.Rank</td><td>@row.Label</td><td>@row.Value.ToString("N2")</td></tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="panel report-section">
+        <h3>6. Key Findings</h3>
+        <ul class="insight-list">@foreach (var item in Model.KeyFindings) { <li>@item</li> }</ul>
+    </section>
+
+    <section class="panel report-section">
+        <h3>7. Executive Recommendations</h3>
+        <ul class="insight-list">@foreach (var item in Model.Recommendations) { <li>@item</li> }</ul>
+    </section>
+
+    <section class="panel report-section">
+        <h3>Report Actions</h3>
+        <ul class="insight-list">
+            <li>Use Download PDF for a formatted executive report.</li>
+            <li>Use Download DOCX for a Microsoft Word compatible report.</li>
+            <li>Use Print Report for browser printing or saving to PDF.</li>
+        </ul>
+    </section>
+</article>
+
+@section Scripts {
+    <script src="~/js/dashboard.js" asp-append-version="true"></script>
+    <script>
+        const reportCharts = @Html.Raw(JsonSerializer.Serialize(Model.Charts, chartOptions));
+        reportCharts.forEach(chart => {
+            if (chart.chartType === 'line') {
+                renderLineChart(chart.id, chart.labels, chart.values, chart.title);
+            } else {
+                renderBarChart(chart.id, chart.labels, chart.values, chart.title);
+            }
+        });
+    </script>
+}
+
+@functions {
+    private bool HasFilter(string key)
+    {
+        return Model.Filters.Options.Any(x => x.Key == key);
+    }
+
+    private string? Selected(string key)
+    {
+        return Model.Filters.Options.FirstOrDefault(x => x.Key == key)?.SelectedValue;
+    }
+}

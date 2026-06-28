@@ -95,9 +95,11 @@
                     <td>@dataset.UploadDate.ToString("dd MMM yyyy")</td>
                     <td class="text-end">
                         <div class="table-actions">
-                            <a class="icon-button" asp-controller="GeneratedDashboard" asp-action="Index" asp-route-datasetId="@dataset.Id" title="Generate dashboard" aria-label="Generate dashboard for @dataset.DatasetName"><i data-lucide="layout-dashboard"></i></a>
                             <a class="icon-button" asp-action="Preview" asp-route-id="@dataset.Id" title="Preview dataset" aria-label="Preview @dataset.DatasetName"><i data-lucide="table"></i></a>
                             <a class="icon-button" asp-action="Details" asp-route-id="@dataset.Id" title="View profile" aria-label="View profile for @dataset.DatasetName"><i data-lucide="bar-chart-3"></i></a>
+                            <a class="icon-button" asp-controller="Insights" asp-action="Index" title="View insights" aria-label="View insights for @dataset.DatasetName"><i data-lucide="sparkles"></i></a>
+                            <a class="icon-button" asp-controller="GeneratedDashboard" asp-action="Index" asp-route-datasetId="@dataset.Id" title="Generated dashboard" aria-label="Generated dashboard for @dataset.DatasetName"><i data-lucide="layout-dashboard"></i></a>
+                            <a class="icon-button" asp-controller="Reports" asp-action="Details" asp-route-datasetId="@dataset.Id" title="Report" aria-label="Report for @dataset.DatasetName"><i data-lucide="file-text"></i></a>
                         </div>
                     </td>
                 </tr>

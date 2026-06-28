@@ -13,8 +13,52 @@
     </div>
     <div class="page-actions">
         <a class="btn btn-outline-secondary" asp-controller="Insights" asp-action="Index">Back</a>
+        <a class="btn btn-primary foundry-button" asp-controller="Reports" asp-action="Details" asp-route-datasetId="@Model.DatasetId" asp-route-from="@Model.Filters.From" asp-route-to="@Model.Filters.To" asp-route-department="@Selected("department")" asp-route-region="@Selected("region")" asp-route-employee="@Selected("employee")" asp-route-product="@Selected("product")" asp-route-category="@Selected("category")"><i data-lucide="file-text"></i><span>Generate Report</span></a>
         <a class="btn btn-primary foundry-button" asp-controller="Datasets" asp-action="Preview" asp-route-id="@Model.DatasetId"><i data-lucide="table"></i><span>Preview data</span></a>
     </div>
+</section>
+
+<section class="filter-banner">
+    <div><i data-lucide="filter"></i><span>@Model.Filters.Summary</span></div>
+    @if (Model.Filters.HasActiveFilters)
+    {
+        <a class="btn btn-outline-secondary btn-sm" asp-controller="GeneratedDashboard" asp-action="Index" asp-route-datasetId="@Model.DatasetId">Reset Filters</a>
+    }
+</section>
+
+<section class="panel filter-panel">
+    <form method="get" action="/GeneratedDashboard/@Model.DatasetId">
+        <div class="filter-grid">
+            @if (HasFilter("date"))
+            {
+                <div>
+                    <label class="form-label" for="from">From</label>
+                    <input class="form-control foundry-input" id="from" name="from" type="date" value="@Model.Filters.From?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div>
+                    <label class="form-label" for="to">To</label>
+                    <input class="form-control foundry-input" id="to" name="to" type="date" value="@Model.Filters.To?.ToString("yyyy-MM-dd")" />
+                </div>
+            }
+            @foreach (var option in Model.Filters.Options.Where(x => x.Key != "date"))
+            {
+                <div>
+                    <label class="form-label" for="@option.Key">@option.Label</label>
+                    <select class="form-select foundry-input" id="@option.Key" name="@option.Key">
+                        <option value="">All @option.Label</option>
+                        @foreach (var value in option.Values)
+                        {
+                            <option value="@value" selected="@(string.Equals(option.SelectedValue, value, StringComparison.OrdinalIgnoreCase) ? "selected" : null)">@value</option>
+                        }
+                    </select>
+                </div>
+            }
+        </div>
+        <div class="form-actions mt-3">
+            <a class="btn btn-outline-secondary" asp-controller="GeneratedDashboard" asp-action="Index" asp-route-datasetId="@Model.DatasetId">Reset Filters</a>
+            <button class="btn btn-primary foundry-button" type="submit"><i data-lucide="sliders-horizontal"></i><span>Apply Filters</span></button>
+        </div>
+    </form>
 </section>
 
 <section class="kpi-grid">
@@ -127,4 +171,16 @@
         generatedTrendCharts.forEach(chart => renderLineChart(chart.id, chart.labels, chart.values, chart.title));
         generatedComparisonCharts.forEach(chart => renderBarChart(chart.id, chart.labels, chart.values, chart.title));
     </script>
+}
+
+@functions {
+    private bool HasFilter(string key)
+    {
+        return Model.Filters.Options.Any(x => x.Key == key) || (key == "date" && (Model.Filters.From.HasValue || Model.Filters.To.HasValue));
+    }
+
+    private string? Selected(string key)
+    {
+        return Model.Filters.Options.FirstOrDefault(x => x.Key == key)?.SelectedValue;
+    }
 }

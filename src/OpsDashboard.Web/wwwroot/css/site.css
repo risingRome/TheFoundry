@@ -191,6 +191,25 @@ a { color: var(--foundry-primary); }
 .foundry-input { border-color: var(--foundry-border); background-color: var(--foundry-surface); color: var(--foundry-text); }
 .foundry-alert { border-radius: 8px; font-size: .82rem; }
 .form-panel { max-width: 760px; }
+.filter-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: .82rem .95rem;
+    border: 1px solid color-mix(in srgb, var(--foundry-primary) 24%, var(--foundry-border));
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--foundry-primary) 8%, var(--foundry-surface));
+    color: var(--foundry-text);
+    font-size: .8rem;
+    font-weight: 600;
+}
+
+.filter-banner > div { display: flex; align-items: center; gap: .55rem; min-width: 0; }
+.filter-banner svg { width: 16px; height: 16px; color: var(--foundry-primary); }
+.filter-panel { margin-bottom: 1.25rem; }
+.filter-grid { display: grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: .85rem; }
 
 .kpi-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
 .kpi-card {
@@ -333,6 +352,33 @@ a { color: var(--foundry-primary); }
 .mini-panel-header { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: .75rem; }
 .mini-panel-header strong { font: 700 .82rem "Manrope", sans-serif; }
 .mini-panel-header span { color: var(--foundry-muted); font-size: .66rem; font-weight: 700; }
+.report-document { display: grid; gap: 1rem; }
+.report-cover {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.15rem;
+    border: 1px solid var(--foundry-border);
+    border-radius: 8px;
+    background: var(--foundry-surface);
+}
+
+.report-cover h2 { margin: 0; font: 700 1.15rem "Manrope", sans-serif; }
+.report-cover p { margin: .25rem 0 0; color: var(--foundry-muted); font-size: .78rem; }
+.report-section h3 { margin: 0 0 .9rem; font: 700 .95rem "Manrope", sans-serif; }
+.report-kpi-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.report-kpi-list > div {
+    display: grid;
+    gap: .2rem;
+    padding: .78rem .85rem;
+    border: 1px solid var(--foundry-border);
+    border-radius: 8px;
+    background: var(--foundry-surface-subtle);
+}
+
+.report-kpi-list strong { font-size: .76rem; }
+.report-kpi-list span { font: 700 1.1rem "Manrope", sans-serif; }
+.report-kpi-list small { color: var(--foundry-muted); font-size: .68rem; }
 
 .app-footer { display: flex; justify-content: space-between; gap: 1rem; padding: 1rem clamp(1rem, 2.5vw, 2rem); border-top: 1px solid var(--foundry-border); color: var(--foundry-muted); font-size: .66rem; }
 
@@ -344,6 +390,7 @@ a { color: var(--foundry-primary); }
     .app-main { margin-left: 0; }
     .topbar { gap: .7rem; }
     .dashboard-grid, .dashboard-grid.team-grid, .dashboard-grid.foundation-layout, .dashboard-grid.preview-layout, .dashboard-grid.generated-layout { grid-template-columns: 1fr; }
+    .filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .span-full { grid-column: auto; }
 }
 
@@ -353,7 +400,9 @@ a { color: var(--foundry-primary); }
     .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .page-heading { flex-direction: column; }
     .page-actions { justify-content: flex-start; }
+    .filter-banner { align-items: flex-start; flex-direction: column; }
     .insight-columns { grid-template-columns: 1fr; }
+    .report-kpi-list { grid-template-columns: 1fr; }
     .foundation-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .page-status { padding-top: 0; }
     .app-footer { flex-direction: column; }
@@ -362,6 +411,7 @@ a { color: var(--foundry-primary); }
 @media (max-width: 479.98px) {
     .content-area { padding: 1.1rem .85rem; }
     .kpi-grid { grid-template-columns: 1fr; gap: .7rem; }
+    .filter-grid { grid-template-columns: 1fr; }
     .foundation-grid { grid-template-columns: 1fr; }
     .kpi-card { min-height: 125px; }
     .chart-wrap { height: 230px; }
@@ -370,3 +420,11 @@ a { color: var(--foundry-primary); }
 }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }
+
+@media print {
+    .sidebar, .topbar, .app-footer, .report-actions-bar { display: none !important; }
+    .app-main { margin-left: 0; }
+    .content-area { max-width: none; padding: 0; }
+    body { background: #fff; color: #111827; }
+    .panel, .kpi-card, .report-cover { box-shadow: none; break-inside: avoid; }
+}

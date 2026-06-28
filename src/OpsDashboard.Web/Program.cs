@@ -10,6 +10,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddScoped<OpsDashboard.Web.Services.IReportExportService, OpsDashboard.Web.Services.ReportExportService>();
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("ExecutiveAccess", policy => policy.RequireRole(AppRoles.Admin, AppRoles.Analyst));
@@ -47,6 +48,7 @@ app.UseAuthorization();
 app.MapControllerRoute("domains", "Domains", new { controller = "Domains", action = "Index" });
 app.MapControllerRoute("datasets", "Datasets", new { controller = "Datasets", action = "Index" });
 app.MapControllerRoute("insights", "Insights", new { controller = "Insights", action = "Index" });
+app.MapControllerRoute("reports", "Reports", new { controller = "Reports", action = "Index" });
 app.MapControllerRoute("default", "{controller=Dashboard}/{action=Executive}/{id?}");
 app.MapRazorPages();
 

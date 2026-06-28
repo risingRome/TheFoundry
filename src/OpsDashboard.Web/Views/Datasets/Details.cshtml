@@ -12,6 +12,7 @@
     <div class="page-actions">
         <a class="btn btn-outline-secondary" asp-action="Index">Back</a>
         <a class="btn btn-primary foundry-button" asp-controller="GeneratedDashboard" asp-action="Index" asp-route-datasetId="@Model.Id"><i data-lucide="layout-dashboard"></i><span>Generate dashboard</span></a>
+        <a class="btn btn-primary foundry-button" asp-controller="Reports" asp-action="Details" asp-route-datasetId="@Model.Id"><i data-lucide="file-text"></i><span>Generate Report</span></a>
         <a class="btn btn-primary foundry-button" asp-action="Preview" asp-route-id="@Model.Id"><i data-lucide="table"></i><span>Preview</span></a>
     </div>
 </section>

@@ -8,6 +8,7 @@ using OpsDashboard.Application.Dashboards;
 using OpsDashboard.Application.Domains;
 using OpsDashboard.Application.GeneratedDashboards;
 using OpsDashboard.Application.Insights;
+using OpsDashboard.Application.Reports;
 using OpsDashboard.Infrastructure.Data;
 using OpsDashboard.Infrastructure.Datasets;
 using OpsDashboard.Infrastructure.Identity;
@@ -28,6 +29,7 @@ public static class DependencyInjection
         services.AddScoped<IDatasetExplorerService, DatasetExplorerService>();
         services.AddScoped<IBusinessIntelligenceService, BusinessIntelligenceService>();
         services.AddScoped<IGeneratedDashboardService, GeneratedDashboardService>();
+        services.AddScoped<IExecutiveReportService, ExecutiveReportService>();
         services.AddScoped<IDatasetFileProfiler, DatasetFileProfiler>();
         services.AddScoped<IDatasetProfileReader, CsvDatasetProfileReader>();
         services.AddScoped<IDatasetProfileReader, XlsxDatasetProfileReader>();

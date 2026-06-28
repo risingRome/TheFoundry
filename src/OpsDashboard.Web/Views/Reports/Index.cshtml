@@ -1,0 +1,53 @@
+@model IReadOnlyList<OpsDashboard.Application.Reports.ReportDatasetListItemDto>
+@{
+    ViewData["Title"] = "Reports";
+}
+
+<section class="page-heading">
+    <div>
+        <div class="page-eyebrow">Executive report generator</div>
+        <h1 class="page-title">Reports</h1>
+        <p class="page-subtitle">Generate deterministic executive business reports from uploaded datasets.</p>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-header">
+        <div>
+            <h2 class="panel-title">Report-ready datasets</h2>
+            <p class="panel-subtitle">Reports reuse profiling, insights, and generated dashboard calculations.</p>
+        </div>
+        <span class="panel-badge">@Model.Count datasets</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+            <tr>
+                <th>Dataset</th>
+                <th>Domain</th>
+                <th>Type</th>
+                <th>Quality</th>
+                <th>Uploaded</th>
+                <th class="text-end">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var dataset in Model)
+            {
+                <tr>
+                    <td><a class="entity-link" asp-action="Details" asp-route-datasetId="@dataset.DatasetId">@dataset.DatasetName</a></td>
+                    <td>@dataset.DomainName</td>
+                    <td>@dataset.SourceType</td>
+                    <td><span class="metric-pill">@dataset.DatasetQualityScore.ToString("0.##")%</span></td>
+                    <td>@dataset.UploadDate.ToString("dd MMM yyyy")</td>
+                    <td class="text-end">
+                        <div class="table-actions">
+                            <a class="btn btn-primary foundry-button" asp-action="Details" asp-route-datasetId="@dataset.DatasetId"><i data-lucide="file-text"></i><span>Generate Report</span></a>
+                        </div>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
