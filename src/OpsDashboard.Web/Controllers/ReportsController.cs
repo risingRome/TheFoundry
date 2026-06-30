@@ -2,11 +2,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OpsDashboard.Application.Abstractions;
 using OpsDashboard.Application.Analytics;
+using OpsDashboard.Infrastructure.Identity;
 using OpsDashboard.Web.Services;
 
 namespace OpsDashboard.Web.Controllers;
 
-[AllowAnonymous]
+[Authorize(Roles = AppRoles.AdminAnalystExecutive)]
 public sealed class ReportsController(IExecutiveReportService reports, IReportExportService exports) : Controller
 {
     [HttpGet("/Reports")]

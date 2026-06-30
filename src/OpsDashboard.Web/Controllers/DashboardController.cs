@@ -6,23 +6,19 @@ using OpsDashboard.Infrastructure.Identity;
 
 namespace OpsDashboard.Web.Controllers;
 
+[Authorize(Roles = AppRoles.AdminAnalystExecutive)]
 public sealed class DashboardController(IDashboardService dashboards, UserManager<ApplicationUser> users) : Controller
 {
-    [AllowAnonymous]
     public async Task<IActionResult> Executive(DateOnly? from, DateOnly? to, CancellationToken cancellationToken)
     {
         var range = ResolveRange(from, to);
         return View(await dashboards.GetExecutiveDashboardAsync(range.From, range.To, cancellationToken));
     }
 
-    [AllowAnonymous]
     public async Task<IActionResult> Team(int? id, DateOnly? from, DateOnly? to, CancellationToken cancellationToken)
     {
         var current = await users.GetUserAsync(User);
-        var isAnonymous = User.Identity?.IsAuthenticated != true;
-        var teamId = isAnonymous
-            ? id ?? 1
-            : User.IsInRole(AppRoles.Admin) || User.IsInRole(AppRoles.Analyst)
+        var teamId = User.IsInRole(AppRoles.Admin) || User.IsInRole(AppRoles.Analyst)
             ? id ?? current?.TeamId ?? 1
             : current?.TeamId;
 
@@ -32,14 +28,10 @@ public sealed class DashboardController(IDashboardService dashboards, UserManage
         return View(await dashboards.GetTeamDashboardAsync(teamId.Value, range.From, range.To, cancellationToken));
     }
 
-    [AllowAnonymous]
     public async Task<IActionResult> Agent(int? id, DateOnly? from, DateOnly? to, CancellationToken cancellationToken)
     {
         var current = await users.GetUserAsync(User);
-        var isAnonymous = User.Identity?.IsAuthenticated != true;
-        var agentId = isAnonymous
-            ? id ?? 1
-            : User.IsInRole(AppRoles.Admin) || User.IsInRole(AppRoles.Analyst) || User.IsInRole(AppRoles.TeamLead)
+        var agentId = User.IsInRole(AppRoles.Admin) || User.IsInRole(AppRoles.Analyst)
             ? id ?? current?.AgentId ?? 1
             : current?.AgentId;
 

@@ -1,0 +1,125 @@
+@model IReadOnlyList<OpsDashboard.Application.DashboardCatalog.DashboardCatalogItemDto>
+@using OpsDashboard.Domain.Enums
+@{
+    ViewData["Title"] = "Dashboard Library";
+    var canManageDashboards = User.IsInRole("Admin") || User.IsInRole("Analyst");
+}
+
+<section class="page-heading">
+    <div>
+        <div class="page-eyebrow">Dashboard catalog</div>
+        <h1 class="page-title">Dashboard Library</h1>
+        <p class="page-subtitle">Saved generated dashboards with persistent filters and lifecycle controls.</p>
+    </div>
+</section>
+
+@if (TempData["StatusMessage"] is string message)
+{
+    <div class="alert alert-success foundry-alert">@message</div>
+}
+
+<section class="panel">
+    <div class="panel-header">
+        <div>
+            <h2 class="panel-title">Saved dashboards</h2>
+            <p class="panel-subtitle">Open, rename, archive, or restore generated dashboard views.</p>
+        </div>
+        <span class="panel-badge">@Model.Count dashboards</span>
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <p class="table-muted">No saved dashboards yet. Open a generated dashboard and use Save Dashboard to add one.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                <tr>
+                    <th>Dashboard</th>
+                    <th>Dataset</th>
+                    <th>Domain</th>
+                    <th>Status</th>
+                    <th>Filters</th>
+                    <th>Updated</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var dashboard in Model)
+                {
+                    <tr>
+                        <td>
+                            @if (canManageDashboards)
+                            {
+                                <form class="library-name-form" asp-action="Rename" method="post">
+                                    <input type="hidden" name="id" value="@dashboard.Id" />
+                                    <input class="form-control foundry-input form-control-sm" name="name" value="@dashboard.Name" aria-label="Dashboard name" />
+                                    <button class="icon-button" type="submit" title="Rename dashboard" aria-label="Rename @dashboard.Name"><i data-lucide="check"></i></button>
+                                </form>
+                            }
+                            else
+                            {
+                                <strong>@dashboard.Name</strong>
+                            }
+                        </td>
+                        <td>@dashboard.DatasetName</td>
+                        <td>@dashboard.DomainName</td>
+                        <td><span class="status-pill @(dashboard.Status == DashboardStatus.Active ? "status-active" : "status-archived")">@dashboard.Status</span></td>
+                        <td>@FilterSummary(dashboard.Filters)</td>
+                        <td>@dashboard.UpdatedDate.ToString("dd MMM yyyy")</td>
+                        <td class="text-end">
+                            <div class="table-actions">
+                                <a class="icon-button" asp-action="Open" asp-route-id="@dashboard.Id" title="Open dashboard" aria-label="Open @dashboard.Name"><i data-lucide="external-link"></i></a>
+                                <a class="icon-button" asp-controller="Assistant" asp-action="Index" asp-route-datasetId="@dashboard.DatasetId" asp-route-from="@dashboard.Filters.From" asp-route-to="@dashboard.Filters.To" asp-route-department="@dashboard.Filters.Department" asp-route-region="@dashboard.Filters.Region" asp-route-employee="@dashboard.Filters.Employee" asp-route-product="@dashboard.Filters.Product" asp-route-category="@dashboard.Filters.Category" title="Assistant" aria-label="Assistant for @dashboard.Name"><i data-lucide="message-circle"></i></a>
+                                @if (canManageDashboards && dashboard.Status == DashboardStatus.Active)
+                                {
+                                    <form asp-action="Archive" method="post">
+                                        <input type="hidden" name="id" value="@dashboard.Id" />
+                                        <button class="icon-button" type="submit" title="Archive dashboard" aria-label="Archive @dashboard.Name"><i data-lucide="archive"></i></button>
+                                    </form>
+                                }
+                                else if (canManageDashboards)
+                                {
+                                    <form asp-action="Restore" method="post">
+                                        <input type="hidden" name="id" value="@dashboard.Id" />
+                                        <button class="icon-button" type="submit" title="Restore dashboard" aria-label="Restore @dashboard.Name"><i data-lucide="rotate-ccw"></i></button>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+@functions {
+    private static string FilterSummary(OpsDashboard.Application.Analytics.AnalyticsFilterDto filters)
+    {
+        var parts = new List<string>();
+        if (filters.From.HasValue || filters.To.HasValue)
+        {
+            parts.Add($"{filters.From?.ToString("dd MMM yyyy") ?? "Start"} to {filters.To?.ToString("dd MMM yyyy") ?? "Current"}");
+        }
+
+        Add(parts, "Department", filters.Department);
+        Add(parts, "Region", filters.Region);
+        Add(parts, "Employee", filters.Employee);
+        Add(parts, "Product", filters.Product);
+        Add(parts, "Category", filters.Category);
+        return parts.Count == 0 ? "All records" : string.Join(" - ", parts);
+    }
+
+    private static void Add(ICollection<string> parts, string label, string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            parts.Add($"{label}: {value}");
+        }
+    }
+}
+

@@ -4,11 +4,12 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using OpsDashboard.Application.Abstractions;
 using OpsDashboard.Application.Datasets;
 using OpsDashboard.Domain.Enums;
+using OpsDashboard.Infrastructure.Identity;
 using OpsDashboard.Web.Models;
 
 namespace OpsDashboard.Web.Controllers;
 
-[AllowAnonymous]
+[Authorize(Roles = AppRoles.AdminOrAnalyst)]
 public sealed class DatasetsController(
     IDatasetService datasets,
     IDatasetExplorerService explorer,

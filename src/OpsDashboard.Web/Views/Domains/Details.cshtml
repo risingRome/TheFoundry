@@ -1,6 +1,7 @@
 @model OpsDashboard.Application.Domains.DomainDetailsDto
 @{
     ViewData["Title"] = "Domain Details";
+    var canManageDomains = User.IsInRole("Admin");
 }
 
 <section class="page-heading">
@@ -11,7 +12,10 @@
     </div>
     <div class="page-actions">
         <a class="btn btn-outline-secondary" asp-action="Index">Back</a>
-        <a class="btn btn-primary foundry-button" asp-action="Edit" asp-route-id="@Model.Id"><i data-lucide="pencil"></i><span>Edit</span></a>
+        @if (canManageDomains)
+        {
+            <a class="btn btn-primary foundry-button" asp-action="Edit" asp-route-id="@Model.Id"><i data-lucide="pencil"></i><span>Edit</span></a>
+        }
     </div>
 </section>
 

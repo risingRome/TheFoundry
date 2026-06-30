@@ -43,14 +43,10 @@ public static class SeedData
             await db.SaveChangesAsync();
         }
 
-        if (!await users.Users.AnyAsync())
-        {
-            await CreateUser(users, "admin@ops.local", "Ops Admin", AppRoles.Admin);
-            await CreateUser(users, "analyst@ops.local", "Ops Analyst", AppRoles.Analyst);
-            await CreateUser(users, "lead@ops.local", "Team Lead", AppRoles.TeamLead, teamId: 1);
-            await CreateUser(users, "agent@ops.local", "Agent User", AppRoles.Agent, teamId: 1, agentId: 1);
-            await CreateUser(users, "viewer@ops.local", "Viewer User", AppRoles.Viewer, teamId: 1);
-        }
+        await EnsureUser(users, "admin@foundry.local", "Foundry Admin", AppRoles.Admin);
+        await EnsureUser(users, "analyst@foundry.local", "Foundry Analyst", AppRoles.Analyst);
+        await EnsureUser(users, "executive@foundry.local", "Foundry Executive", AppRoles.Executive);
+        await EnsureUser(users, "viewer@foundry.local", "Foundry Viewer", AppRoles.Viewer);
 
         if (!await db.OperationsCases.AnyAsync())
         {
@@ -82,10 +78,21 @@ public static class SeedData
         }
     }
 
-    private static async Task CreateUser(UserManager<ApplicationUser> users, string email, string name, string role, int? teamId = null, int? agentId = null)
+    private static async Task EnsureUser(UserManager<ApplicationUser> users, string email, string name, string role, int? teamId = null, int? agentId = null)
     {
+        var existing = await users.FindByEmailAsync(email);
+        if (existing is not null)
+        {
+            if (!await users.IsInRoleAsync(existing, role))
+            {
+                await users.AddToRoleAsync(existing, role);
+            }
+
+            return;
+        }
+
         var user = new ApplicationUser { UserName = email, Email = email, EmailConfirmed = true, DisplayName = name, TeamId = teamId, AgentId = agentId };
-        var result = await users.CreateAsync(user, "ChangeMe!234");
+        var result = await users.CreateAsync(user, "Foundry!234");
         if (!result.Succeeded) throw new InvalidOperationException(string.Join("; ", result.Errors.Select(e => e.Description)));
         await users.AddToRoleAsync(user, role);
     }

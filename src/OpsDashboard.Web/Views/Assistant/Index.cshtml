@@ -1,0 +1,103 @@
+@model OpsDashboard.Application.Assistant.AssistantPageDto
+@{
+    ViewData["Title"] = "Executive Assistant";
+    string? Selected(string key) => Model.Filters.Options.FirstOrDefault(x => x.Key == key)?.SelectedValue;
+}
+
+<section class="page-heading">
+    <div>
+        <div class="page-eyebrow">Rule-based executive assistant</div>
+        <h1 class="page-title">@Model.DatasetName</h1>
+        <p class="page-subtitle">@Model.DomainName &middot; Deterministic answers from profile, insights, dashboards, and reports</p>
+    </div>
+    <div class="page-actions">
+        <a class="btn btn-outline-secondary" asp-controller="GeneratedDashboard" asp-action="Index" asp-route-datasetId="@Model.DatasetId" asp-route-from="@Model.Filters.From" asp-route-to="@Model.Filters.To" asp-route-department="@Selected("department")" asp-route-region="@Selected("region")" asp-route-employee="@Selected("employee")" asp-route-product="@Selected("product")" asp-route-category="@Selected("category")">Dashboard</a>
+        <a class="btn btn-primary foundry-button" asp-controller="Reports" asp-action="Details" asp-route-datasetId="@Model.DatasetId" asp-route-from="@Model.Filters.From" asp-route-to="@Model.Filters.To" asp-route-department="@Selected("department")" asp-route-region="@Selected("region")" asp-route-employee="@Selected("employee")" asp-route-product="@Selected("product")" asp-route-category="@Selected("category")"><i data-lucide="file-text"></i><span>Report</span></a>
+    </div>
+</section>
+
+<section class="filter-banner">
+    <div><i data-lucide="filter"></i><span>@Model.Filters.Summary</span></div>
+</section>
+
+<div class="assistant-layout">
+    <section class="panel assistant-chat">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Conversation</h2>
+                <p class="panel-subtitle">Answers are generated with deterministic business rules. No AI APIs are used.</p>
+            </div>
+            <span class="panel-badge">@Model.Conversations.Count messages</span>
+        </div>
+
+        <div class="chat-transcript">
+            @if (Model.Conversations.Count == 0)
+            {
+                <div class="assistant-empty">
+                    <i data-lucide="message-circle"></i>
+                    <p>Ask a supported question to generate the first assistant response.</p>
+                </div>
+            }
+            @foreach (var item in Model.Conversations)
+            {
+                <article class="chat-message user-message">
+                    <div class="chat-avatar">U</div>
+                    <div>
+                        <div class="chat-meta">You &middot; @item.CreatedAt.ToString("dd MMM yyyy HH:mm") UTC</div>
+                        <p>@item.UserMessage</p>
+                    </div>
+                </article>
+                <article class="chat-message assistant-message">
+                    <div class="chat-avatar">F</div>
+                    <div>
+                        <div class="chat-meta">The Foundry Assistant</div>
+                        <p>@Html.Raw(Html.Encode(item.AssistantResponse).Replace("\r\n", "<br />").Replace("\n", "<br />"))</p>
+                    </div>
+                </article>
+            }
+        </div>
+
+        <form class="assistant-compose" method="post" action="/Assistant/@Model.DatasetId">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="from" value="@Model.Filters.From?.ToString("yyyy-MM-dd")" />
+            <input type="hidden" name="to" value="@Model.Filters.To?.ToString("yyyy-MM-dd")" />
+            <input type="hidden" name="department" value="@Selected("department")" />
+            <input type="hidden" name="region" value="@Selected("region")" />
+            <input type="hidden" name="employee" value="@Selected("employee")" />
+            <input type="hidden" name="product" value="@Selected("product")" />
+            <input type="hidden" name="category" value="@Selected("category")" />
+            <label class="form-label" for="userMessage">Ask the assistant</label>
+            <div class="assistant-input-row">
+                <input class="form-control foundry-input" id="userMessage" name="userMessage" maxlength="1000" placeholder="Summarize this dataset" required />
+                <button class="btn btn-primary foundry-button" type="submit"><i data-lucide="send"></i><span>Ask</span></button>
+            </div>
+        </form>
+    </section>
+
+    <aside class="panel assistant-prompts">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Supported questions</h2>
+                <p class="panel-subtitle">Click a prompt to fill the composer.</p>
+            </div>
+        </div>
+        <div class="prompt-list">
+            @foreach (var question in Model.SuggestedQuestions)
+            {
+                <button class="prompt-chip" type="button" data-question="@question">@question</button>
+            }
+        </div>
+    </aside>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('[data-question]').forEach(button => {
+            button.addEventListener('click', () => {
+                const input = document.getElementById('userMessage');
+                input.value = button.dataset.question;
+                input.focus();
+            });
+        });
+    </script>
+}

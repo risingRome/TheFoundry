@@ -2,11 +2,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OpsDashboard.Application.Abstractions;
 using OpsDashboard.Application.Domains;
+using OpsDashboard.Infrastructure.Identity;
 using OpsDashboard.Web.Models;
 
 namespace OpsDashboard.Web.Controllers;
 
-[AllowAnonymous]
+[Authorize(Roles = AppRoles.AdminOrAnalyst)]
 public sealed class DomainsController(IDomainService domains) : Controller
 {
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
@@ -20,6 +21,7 @@ public sealed class DomainsController(IDomainService domains) : Controller
         return domain is null ? NotFound() : View(domain);
     }
 
+    [Authorize(Roles = AppRoles.Admin)]
     public IActionResult Create()
     {
         return View(new DomainFormViewModel());
@@ -27,6 +29,7 @@ public sealed class DomainsController(IDomainService domains) : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = AppRoles.Admin)]
     public async Task<IActionResult> Create(DomainFormViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
@@ -39,6 +42,7 @@ public sealed class DomainsController(IDomainService domains) : Controller
         return RedirectToAction(nameof(Details), new { id });
     }
 
+    [Authorize(Roles = AppRoles.Admin)]
     public async Task<IActionResult> Edit(int id, CancellationToken cancellationToken)
     {
         var domain = await domains.GetByIdAsync(id, cancellationToken);
@@ -52,6 +56,7 @@ public sealed class DomainsController(IDomainService domains) : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = AppRoles.Admin)]
     public async Task<IActionResult> Edit(int id, DomainFormViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
@@ -71,6 +76,7 @@ public sealed class DomainsController(IDomainService domains) : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = AppRoles.Admin)]
     public async Task<IActionResult> Archive(int id, CancellationToken cancellationToken)
     {
         var archived = await domains.ArchiveAsync(id, cancellationToken);
@@ -85,6 +91,7 @@ public sealed class DomainsController(IDomainService domains) : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = AppRoles.Admin)]
     public async Task<IActionResult> Restore(int id, CancellationToken cancellationToken)
     {
         var restored = await domains.RestoreAsync(id, cancellationToken);

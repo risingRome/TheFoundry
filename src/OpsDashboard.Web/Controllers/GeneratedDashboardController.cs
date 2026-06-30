@@ -2,10 +2,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OpsDashboard.Application.Abstractions;
 using OpsDashboard.Application.Analytics;
+using OpsDashboard.Infrastructure.Identity;
 
 namespace OpsDashboard.Web.Controllers;
 
-[AllowAnonymous]
+[Authorize(Roles = AppRoles.AdminAnalystExecutive)]
 public sealed class GeneratedDashboardController(IGeneratedDashboardService dashboards) : Controller
 {
     [HttpGet("/GeneratedDashboard/{datasetId:int}")]

@@ -10,10 +10,12 @@ public sealed class OpsDashboardDbContext(DbContextOptions<OpsDashboardDbContext
     : IdentityDbContext<ApplicationUser>(options), IOpsDashboardDbContext
 {
     public DbSet<Agent> Agents => Set<Agent>();
+    public DbSet<AssistantConversation> AssistantConversations => Set<AssistantConversation>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<CaseType> CaseTypes => Set<CaseType>();
     public DbSet<DataFreshness> DataFreshness => Set<DataFreshness>();
     public DbSet<OpsDashboard.Domain.Entities.Domain> Domains => Set<OpsDashboard.Domain.Entities.Domain>();
+    public DbSet<OpsDashboard.Domain.Entities.Dashboard> Dashboards => Set<OpsDashboard.Domain.Entities.Dashboard>();
     public DbSet<Dataset> Datasets => Set<Dataset>();
     public DbSet<DatasetInsight> DatasetInsights => Set<DatasetInsight>();
     public DbSet<OperationsCase> OperationsCases => Set<OperationsCase>();
@@ -115,6 +117,29 @@ public sealed class OpsDashboardDbContext(DbContextOptions<OpsDashboardDbContext
             entity.Property(x => x.GeneratedAtUtc).HasColumnType("datetime2");
             entity.HasIndex(x => x.DatasetId).IsUnique();
             entity.HasOne(x => x.Dataset).WithOne().HasForeignKey<DatasetInsight>(x => x.DatasetId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<OpsDashboard.Domain.Entities.Dashboard>(entity =>
+        {
+            entity.ToTable("Dashboards");
+            entity.Property(x => x.Name).HasMaxLength(180).IsRequired();
+            entity.Property(x => x.Status).HasConversion<string>().HasMaxLength(24).IsRequired();
+            entity.Property(x => x.FilterJson).IsRequired();
+            entity.Property(x => x.CreatedDate).HasColumnType("datetime2");
+            entity.Property(x => x.UpdatedDate).HasColumnType("datetime2");
+            entity.HasIndex(x => new { x.DatasetId, x.Status });
+            entity.HasOne(x => x.Dataset).WithMany().HasForeignKey(x => x.DatasetId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<AssistantConversation>(entity =>
+        {
+            entity.ToTable("AssistantConversations");
+            entity.Property(x => x.UserMessage).HasMaxLength(1000).IsRequired();
+            entity.Property(x => x.AssistantResponse).IsRequired();
+            entity.Property(x => x.CreatedAt).HasColumnType("datetime2");
+            entity.Property(x => x.UserId).HasMaxLength(450);
+            entity.HasIndex(x => new { x.DatasetId, x.CreatedAt });
+            entity.HasOne(x => x.Dataset).WithMany().HasForeignKey(x => x.DatasetId).OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

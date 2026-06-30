@@ -1,0 +1,19 @@
+@{
+    ViewData["Title"] = "Access denied";
+}
+
+<section class="auth-shell">
+    <div class="auth-panel access-panel">
+        <div class="auth-brand">
+            <span class="brand-mark" aria-hidden="true"><i data-lucide="shield-alert"></i></span>
+            <div>
+                <h1>Access denied</h1>
+                <p>Your current role does not include permission for this workspace area.</p>
+            </div>
+        </div>
+        <div class="form-actions justify-content-start">
+            <a class="btn btn-outline-secondary" asp-controller="DashboardLibrary" asp-action="Index">Dashboard Library</a>
+            <a class="btn btn-primary foundry-button" href="/Identity/Account/Login"><i data-lucide="log-in"></i><span>Use another account</span></a>
+        </div>
+    </div>
+</section>

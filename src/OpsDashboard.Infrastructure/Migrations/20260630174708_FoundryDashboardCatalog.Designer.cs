@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OpsDashboard.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using OpsDashboard.Infrastructure.Data;
 namespace OpsDashboard.Infrastructure.Migrations
 {
     [DbContext(typeof(OpsDashboardDbContext))]
-    partial class OpsDashboardDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260630174708_FoundryDashboardCatalog")]
+    partial class FoundryDashboardCatalog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -190,40 +193,6 @@ namespace OpsDashboard.Infrastructure.Migrations
                     b.HasIndex("TeamId");
 
                     b.ToTable("Agents", (string)null);
-                });
-
-            modelBuilder.Entity("OpsDashboard.Domain.Entities.AssistantConversation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AssistantResponse")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("DatasetId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("UserMessage")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DatasetId", "CreatedAt");
-
-                    b.ToTable("AssistantConversations", (string)null);
                 });
 
             modelBuilder.Entity("OpsDashboard.Domain.Entities.AuditLog", b =>
@@ -734,17 +703,6 @@ namespace OpsDashboard.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Team");
-                });
-
-            modelBuilder.Entity("OpsDashboard.Domain.Entities.AssistantConversation", b =>
-                {
-                    b.HasOne("OpsDashboard.Domain.Entities.Dataset", "Dataset")
-                        .WithMany()
-                        .HasForeignKey("DatasetId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Dataset");
                 });
 
             modelBuilder.Entity("OpsDashboard.Domain.Entities.Dashboard", b =>

@@ -100,6 +100,7 @@
                             <a class="icon-button" asp-controller="Insights" asp-action="Index" title="View insights" aria-label="View insights for @dataset.DatasetName"><i data-lucide="sparkles"></i></a>
                             <a class="icon-button" asp-controller="GeneratedDashboard" asp-action="Index" asp-route-datasetId="@dataset.Id" title="Generated dashboard" aria-label="Generated dashboard for @dataset.DatasetName"><i data-lucide="layout-dashboard"></i></a>
                             <a class="icon-button" asp-controller="Reports" asp-action="Details" asp-route-datasetId="@dataset.Id" title="Report" aria-label="Report for @dataset.DatasetName"><i data-lucide="file-text"></i></a>
+                            <a class="icon-button" asp-controller="Assistant" asp-action="Index" asp-route-datasetId="@dataset.Id" title="Assistant" aria-label="Assistant for @dataset.DatasetName"><i data-lucide="message-circle"></i></a>
                         </div>
                     </td>
                 </tr>

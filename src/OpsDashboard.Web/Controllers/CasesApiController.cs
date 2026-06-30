@@ -11,7 +11,7 @@ namespace OpsDashboard.Web.Controllers;
 
 [ApiController]
 [Route("api/v1/cases")]
-[Authorize(Roles = "Admin,Analyst")]
+[Authorize(Roles = AppRoles.AdminOrAnalyst)]
 public sealed class CasesApiController(OpsDashboardDbContext db) : ControllerBase
 {
     [HttpPost]

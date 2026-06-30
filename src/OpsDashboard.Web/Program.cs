@@ -11,11 +11,18 @@ builder.Services.AddRazorPages();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<OpsDashboard.Web.Services.IReportExportService, OpsDashboard.Web.Services.ReportExportService>();
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Identity/Account/Login";
+    options.LogoutPath = "/Identity/Account/Logout";
+    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+});
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("ExecutiveAccess", policy => policy.RequireRole(AppRoles.Admin, AppRoles.Analyst));
-    options.AddPolicy("TeamAccess", policy => policy.RequireRole(AppRoles.Admin, AppRoles.Analyst, AppRoles.TeamLead, AppRoles.Viewer));
-    options.AddPolicy("AgentAccess", policy => policy.RequireRole(AppRoles.Admin, AppRoles.Analyst, AppRoles.TeamLead, AppRoles.Agent));
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole(AppRoles.Admin));
+    options.AddPolicy("AnalystAccess", policy => policy.RequireRole(AppRoles.Admin, AppRoles.Analyst));
+    options.AddPolicy("ExecutiveAccess", policy => policy.RequireRole(AppRoles.Admin, AppRoles.Analyst, AppRoles.Executive));
+    options.AddPolicy("DashboardLibraryRead", policy => policy.RequireRole(AppRoles.Admin, AppRoles.Analyst, AppRoles.Executive, AppRoles.Viewer));
 });
 
 var app = builder.Build();
@@ -49,6 +56,7 @@ app.MapControllerRoute("domains", "Domains", new { controller = "Domains", actio
 app.MapControllerRoute("datasets", "Datasets", new { controller = "Datasets", action = "Index" });
 app.MapControllerRoute("insights", "Insights", new { controller = "Insights", action = "Index" });
 app.MapControllerRoute("reports", "Reports", new { controller = "Reports", action = "Index" });
+app.MapControllerRoute("dashboard-library", "DashboardLibrary", new { controller = "DashboardLibrary", action = "Index" });
 app.MapControllerRoute("default", "{controller=Dashboard}/{action=Executive}/{id?}");
 app.MapRazorPages();
 

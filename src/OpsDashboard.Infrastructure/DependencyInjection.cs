@@ -3,7 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OpsDashboard.Application.Abstractions;
+using OpsDashboard.Application.Assistant;
 using OpsDashboard.Application.Datasets;
+using OpsDashboard.Application.DashboardCatalog;
 using OpsDashboard.Application.Dashboards;
 using OpsDashboard.Application.Domains;
 using OpsDashboard.Application.GeneratedDashboards;
@@ -24,6 +26,8 @@ public static class DependencyInjection
 
         services.AddScoped<IOpsDashboardDbContext>(sp => sp.GetRequiredService<OpsDashboardDbContext>());
         services.AddScoped<IDashboardService, DashboardService>();
+        services.AddScoped<IDashboardCatalogService, DashboardCatalogService>();
+        services.AddScoped<IExecutiveAssistantService, ExecutiveAssistantService>();
         services.AddScoped<IDomainService, DomainService>();
         services.AddScoped<IDatasetService, DatasetService>();
         services.AddScoped<IDatasetExplorerService, DatasetExplorerService>();

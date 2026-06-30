@@ -1,16 +1,28 @@
 @using Microsoft.AspNetCore.Identity
 @using OpsDashboard.Infrastructure.Identity
 @inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
 
 @if (SignInManager.IsSignedIn(User))
 {
+    var currentUser = await UserManager.GetUserAsync(User);
+    var roles = currentUser is null ? Array.Empty<string>() : await UserManager.GetRolesAsync(currentUser);
     <div class="dropdown">
         <button class="user-menu" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             <span class="user-avatar">@(User.Identity?.Name?.Substring(0, 1).ToUpperInvariant() ?? "U")</span>
             <span class="user-name d-none d-md-inline">@User.Identity?.Name</span>
+            @foreach (var role in roles)
+            {
+                <span class="role-badge d-none d-lg-inline">@role</span>
+            }
             <i data-lucide="chevron-down"></i>
         </button>
         <ul class="dropdown-menu dropdown-menu-end">
+            @foreach (var role in roles)
+            {
+                <li><span class="dropdown-item-text"><span class="role-badge">@role</span></span></li>
+            }
+            <li><hr class="dropdown-divider" /></li>
             <li>
                 <form action="/Identity/Account/Logout" method="post">
                     <button type="submit" class="dropdown-item"><i data-lucide="log-out"></i> Sign out</button>
