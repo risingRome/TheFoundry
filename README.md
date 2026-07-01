@@ -213,3 +213,26 @@ Rahul Kumar Yadav
 
 Computer Engineering Graduate  
 Data Analytics & Business Intelligence Enthusiast
+
+## Screenshots
+
+### Login & RBAC
+![Login](docs/screenshots/login.png)
+
+### Dataset Registry
+![Datasets](docs/screenshots/datasets.png)
+
+### Business Insights Engine
+![Insights](docs/screenshots/insights.png)
+
+### Generated Dashboard
+![Generated Dashboard](docs/screenshots/generated-dashboard.png)
+
+### Executive Dashboard
+![Dashboard](docs/screenshots/dashboard.png)
+
+### Executive Reports
+![Reports](docs/screenshots/reports.png)
+
+### Dashboard Library
+![Dashboard Library](docs/screenshots/dashboard-library.png)
