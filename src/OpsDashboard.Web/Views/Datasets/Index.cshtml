@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Datasets";
     var datasets = ViewData["Datasets"] as IReadOnlyList<OpsDashboard.Application.Datasets.DatasetListItemDto> ?? Array.Empty<OpsDashboard.Application.Datasets.DatasetListItemDto>();
+    var canRefresh = User.IsInRole("Admin") || User.IsInRole("Analyst");
 }
 
 <section class="page-heading">
@@ -77,6 +78,8 @@
                 <th>Rows</th>
                 <th>Columns</th>
                 <th>Quality</th>
+                <th>Last Refreshed</th>
+                <th>Refresh Status</th>
                 <th>Uploaded</th>
                 <th class="text-end">Actions</th>
             </tr>
@@ -92,9 +95,17 @@
                     <td>@dataset.RowCount</td>
                     <td>@dataset.ColumnCount</td>
                     <td><span class="metric-pill">@dataset.DatasetQualityScore.ToString("0.##")%</span></td>
+                    <td>@(dataset.LastRefreshTimeUtc?.ToString("dd MMM yyyy HH:mm") ?? "Never")</td>
+                    <td><span class="status-pill @RefreshStatusClass(dataset.LastRefreshStatus)">@(dataset.LastRefreshStatus?.ToString() ?? "Not refreshed")</span></td>
                     <td>@dataset.UploadDate.ToString("dd MMM yyyy")</td>
                     <td class="text-end">
                         <div class="table-actions">
+                            @if (canRefresh)
+                            {
+                                <form asp-controller="RefreshCenter" asp-action="Refresh" asp-route-datasetId="@dataset.Id" method="post">
+                                    <button class="icon-button" type="submit" title="Refresh now" aria-label="Refresh @dataset.DatasetName"><i data-lucide="refresh-cw"></i></button>
+                                </form>
+                            }
                             <a class="icon-button" asp-action="Preview" asp-route-id="@dataset.Id" title="Preview dataset" aria-label="Preview @dataset.DatasetName"><i data-lucide="table"></i></a>
                             <a class="icon-button" asp-action="Details" asp-route-id="@dataset.Id" title="View profile" aria-label="View profile for @dataset.DatasetName"><i data-lucide="bar-chart-3"></i></a>
                             <a class="icon-button" asp-controller="Insights" asp-action="Index" title="View insights" aria-label="View insights for @dataset.DatasetName"><i data-lucide="sparkles"></i></a>
@@ -109,3 +120,16 @@
         </table>
     </div>
 </section>
+
+@functions {
+    private static string RefreshStatusClass(OpsDashboard.Domain.Enums.DataRefreshStatus? status)
+    {
+        return status switch
+        {
+            OpsDashboard.Domain.Enums.DataRefreshStatus.Success => "status-active",
+            OpsDashboard.Domain.Enums.DataRefreshStatus.Failed => "status-red",
+            OpsDashboard.Domain.Enums.DataRefreshStatus.Running => "status-amber",
+            _ => "status-archived"
+        };
+    }
+}

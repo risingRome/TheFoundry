@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OpsDashboard.Application.Abstractions;
 using OpsDashboard.Application.Assistant;
 using OpsDashboard.Application.Datasets;
+using OpsDashboard.Application.DataRefresh;
 using OpsDashboard.Application.DashboardCatalog;
 using OpsDashboard.Application.Dashboards;
 using OpsDashboard.Application.Domains;
@@ -28,6 +29,7 @@ public static class DependencyInjection
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IDashboardCatalogService, DashboardCatalogService>();
         services.AddScoped<IExecutiveAssistantService, ExecutiveAssistantService>();
+        services.AddScoped<IDataRefreshService, DataRefreshService>();
         services.AddScoped<IDomainService, DomainService>();
         services.AddScoped<IDatasetService, DatasetService>();
         services.AddScoped<IDatasetExplorerService, DatasetExplorerService>();

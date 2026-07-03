@@ -1,0 +1,82 @@
+@model OpsDashboard.Application.DataRefresh.DatasetRefreshHistoryDto
+@using OpsDashboard.Domain.Enums
+@{
+    ViewData["Title"] = "Refresh History";
+    var canRefresh = User.IsInRole("Admin") || User.IsInRole("Analyst");
+}
+
+<section class="page-heading">
+    <div>
+        <div class="page-eyebrow">Refresh history</div>
+        <h1 class="page-title">@Model.DatasetName</h1>
+        <p class="page-subtitle">@Model.DomainName &middot; @Model.Jobs.Count refresh jobs</p>
+    </div>
+    <div class="page-actions">
+        <a class="btn btn-outline-secondary" asp-action="Index">Back</a>
+        @if (canRefresh)
+        {
+            <form asp-action="Refresh" asp-route-datasetId="@Model.DatasetId" method="post">
+                <button class="btn btn-primary foundry-button" type="submit"><i data-lucide="refresh-cw"></i><span>Refresh Now</span></button>
+            </form>
+        }
+    </div>
+</section>
+
+@if (TempData["StatusMessage"] is string message)
+{
+    <div class="alert alert-success foundry-alert">@message</div>
+}
+
+<section class="panel">
+    <div class="panel-header">
+        <div>
+            <h2 class="panel-title">Refresh jobs</h2>
+            <p class="panel-subtitle">Execution history for this uploaded dataset.</p>
+        </div>
+        <span class="panel-badge">@Model.Jobs.Count jobs</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+            <tr>
+                <th>Started At</th>
+                <th>Completed At</th>
+                <th>Status</th>
+                <th>Records Processed</th>
+                <th>Triggered By</th>
+                <th>Message</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var job in Model.Jobs)
+            {
+                <tr>
+                    <td>@job.StartedAtUtc.ToString("dd MMM yyyy HH:mm") UTC</td>
+                    <td>@(job.CompletedAtUtc?.ToString("dd MMM yyyy HH:mm") ?? "-")</td>
+                    <td><span class="status-pill @StatusClass(job.Status)">@job.Status</span></td>
+                    <td>@job.RecordsProcessed.ToString("N0")</td>
+                    <td>@(string.IsNullOrWhiteSpace(job.TriggeredByEmail) ? "-" : job.TriggeredByEmail)</td>
+                    <td>@(string.IsNullOrWhiteSpace(job.Message) ? "-" : job.Message)</td>
+                </tr>
+            }
+            @if (Model.Jobs.Count == 0)
+            {
+                <tr><td colspan="6" class="table-muted">No refresh jobs have been run for this dataset.</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+@functions {
+    private static string StatusClass(DataRefreshStatus status)
+    {
+        return status switch
+        {
+            DataRefreshStatus.Success => "status-active",
+            DataRefreshStatus.Failed => "status-red",
+            DataRefreshStatus.Running => "status-amber",
+            _ => "status-archived"
+        };
+    }
+}

@@ -73,6 +73,12 @@
             }
             @if (canExecutive)
             {
+                <a class="@ControllerNavClass("RefreshCenter")" asp-controller="RefreshCenter" asp-action="Index">
+                    <i data-lucide="refresh-cw"></i><span>Refresh Center</span>
+                </a>
+            }
+            @if (canExecutive)
+            {
                 <a class="@ControllerNavClass("Reports")" asp-controller="Reports" asp-action="Index">
                     <i data-lucide="file-text"></i><span>Reports</span>
                 </a>
@@ -93,7 +99,7 @@
 
         <div class="sidebar-foot">
             <div class="environment-badge"><span></span> Operational data live</div>
-            <div class="sidebar-version">The Foundry <span>v1.9.0</span></div>
+            <div class="sidebar-version">The Foundry <span>v2.0.0</span></div>
         </div>
     </aside>
 
@@ -120,7 +126,7 @@
 
         <footer class="app-footer">
             <span>&copy; @DateTime.UtcNow.Year The Foundry</span>
-            <span>Business Intelligence Platform &middot; Version 1.9.0</span>
+            <span>Business Intelligence Platform &middot; Version 2.0.0</span>
         </footer>
     </div>
 </div>

@@ -308,6 +308,8 @@ a { color: var(--foundry-primary); }
 
 .status-active, .status-profiled { background: color-mix(in srgb, var(--foundry-green) 12%, transparent); color: var(--foundry-green); }
 .status-archived { background: color-mix(in srgb, var(--foundry-muted) 14%, transparent); color: var(--foundry-muted); }
+.status-amber { background: color-mix(in srgb, var(--foundry-amber) 12%, transparent); color: var(--foundry-amber); }
+.status-red { background: color-mix(in srgb, var(--foundry-red) 12%, transparent); color: var(--foundry-red); }
 .foundation-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .compact-value { font-size: 1.15rem; white-space: normal; }
 .foundation-summary { display: grid; gap: .75rem; }

@@ -10,6 +10,7 @@ public interface IOpsDashboardDbContext
     DbSet<AuditLog> AuditLogs { get; }
     DbSet<CaseType> CaseTypes { get; }
     DbSet<DataFreshness> DataFreshness { get; }
+    DbSet<DataRefreshJob> DataRefreshJobs { get; }
     DbSet<OpsDashboard.Domain.Entities.Domain> Domains { get; }
     DbSet<OpsDashboard.Domain.Entities.Dashboard> Dashboards { get; }
     DbSet<Dataset> Datasets { get; }

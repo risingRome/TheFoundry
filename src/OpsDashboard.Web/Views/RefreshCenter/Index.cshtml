@@ -1,0 +1,83 @@
+@model IReadOnlyList<OpsDashboard.Application.DataRefresh.RefreshCenterDatasetDto>
+@using OpsDashboard.Domain.Enums
+@{
+    ViewData["Title"] = "Refresh Center";
+    var canRefresh = User.IsInRole("Admin") || User.IsInRole("Analyst");
+}
+
+<section class="page-heading">
+    <div>
+        <div class="page-eyebrow">Data operations</div>
+        <h1 class="page-title">Refresh Center</h1>
+        <p class="page-subtitle">Monitor dataset refresh status and rerun profiling for uploaded files.</p>
+    </div>
+</section>
+
+@if (TempData["StatusMessage"] is string message)
+{
+    <div class="alert alert-success foundry-alert">@message</div>
+}
+
+<section class="panel">
+    <div class="panel-header">
+        <div>
+            <h2 class="panel-title">Dataset refresh monitor</h2>
+            <p class="panel-subtitle">Refresh jobs update profile metrics, insights, and generated dashboard context.</p>
+        </div>
+        <span class="panel-badge">@Model.Count datasets</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+            <tr>
+                <th>Dataset</th>
+                <th>Domain</th>
+                <th>Last refreshed</th>
+                <th>Status</th>
+                <th>Records</th>
+                <th>Message</th>
+                <th class="text-end">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var dataset in Model)
+            {
+                <tr>
+                    <td><a class="entity-link" asp-controller="Datasets" asp-action="Details" asp-route-id="@dataset.DatasetId">@dataset.DatasetName</a></td>
+                    <td>@dataset.DomainName</td>
+                    <td>@(dataset.LastRefreshTimeUtc?.ToString("dd MMM yyyy HH:mm") ?? "Never")</td>
+                    <td><span class="status-pill @StatusClass(dataset.LastRefreshStatus)">@DisplayStatus(dataset.LastRefreshStatus)</span></td>
+                    <td>@(dataset.RecordsProcessed?.ToString("N0") ?? "-")</td>
+                    <td>@(string.IsNullOrWhiteSpace(dataset.LastMessage) ? "-" : dataset.LastMessage)</td>
+                    <td class="text-end">
+                        <div class="table-actions">
+                            @if (canRefresh)
+                            {
+                                <form asp-action="Refresh" asp-route-datasetId="@dataset.DatasetId" method="post">
+                                    <button class="icon-button" type="submit" title="Refresh now" aria-label="Refresh @dataset.DatasetName"><i data-lucide="refresh-cw"></i></button>
+                                </form>
+                            }
+                            <a class="icon-button" asp-action="History" asp-route-datasetId="@dataset.DatasetId" title="View history" aria-label="View refresh history for @dataset.DatasetName"><i data-lucide="history"></i></a>
+                        </div>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+@functions {
+    private static string DisplayStatus(DataRefreshStatus? status) => status?.ToString() ?? "Not refreshed";
+
+    private static string StatusClass(DataRefreshStatus? status)
+    {
+        return status switch
+        {
+            DataRefreshStatus.Success => "status-active",
+            DataRefreshStatus.Failed => "status-red",
+            DataRefreshStatus.Running => "status-amber",
+            _ => "status-archived"
+        };
+    }
+}

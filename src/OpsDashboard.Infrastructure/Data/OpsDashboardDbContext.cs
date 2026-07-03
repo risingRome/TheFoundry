@@ -14,6 +14,7 @@ public sealed class OpsDashboardDbContext(DbContextOptions<OpsDashboardDbContext
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<CaseType> CaseTypes => Set<CaseType>();
     public DbSet<DataFreshness> DataFreshness => Set<DataFreshness>();
+    public DbSet<DataRefreshJob> DataRefreshJobs => Set<DataRefreshJob>();
     public DbSet<OpsDashboard.Domain.Entities.Domain> Domains => Set<OpsDashboard.Domain.Entities.Domain>();
     public DbSet<OpsDashboard.Domain.Entities.Dashboard> Dashboards => Set<OpsDashboard.Domain.Entities.Dashboard>();
     public DbSet<Dataset> Datasets => Set<Dataset>();
@@ -139,6 +140,19 @@ public sealed class OpsDashboardDbContext(DbContextOptions<OpsDashboardDbContext
             entity.Property(x => x.CreatedAt).HasColumnType("datetime2");
             entity.Property(x => x.UserId).HasMaxLength(450);
             entity.HasIndex(x => new { x.DatasetId, x.CreatedAt });
+            entity.HasOne(x => x.Dataset).WithMany().HasForeignKey(x => x.DatasetId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<DataRefreshJob>(entity =>
+        {
+            entity.ToTable("DataRefreshJobs");
+            entity.Property(x => x.StartedAtUtc).HasColumnType("datetime2");
+            entity.Property(x => x.CompletedAtUtc).HasColumnType("datetime2");
+            entity.Property(x => x.Status).HasConversion<string>().HasMaxLength(24).IsRequired();
+            entity.Property(x => x.TriggeredByUserId).HasMaxLength(450);
+            entity.Property(x => x.TriggeredByEmail).HasMaxLength(256);
+            entity.Property(x => x.Message).HasMaxLength(2000);
+            entity.HasIndex(x => new { x.DatasetId, x.StartedAtUtc });
             entity.HasOne(x => x.Dataset).WithMany().HasForeignKey(x => x.DatasetId).OnDelete(DeleteBehavior.Cascade);
         });
     }

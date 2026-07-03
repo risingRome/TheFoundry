@@ -21,7 +21,17 @@ public sealed class DatasetService(IOpsDashboardDbContext db, IDatasetFileProfil
                 x.Status,
                 x.RowCount,
                 x.ColumnCount,
-                x.DatasetQualityScore))
+                x.DatasetQualityScore,
+                db.DataRefreshJobs
+                    .Where(job => job.DatasetId == x.Id)
+                    .OrderByDescending(job => job.StartedAtUtc)
+                    .Select(job => job.CompletedAtUtc ?? job.StartedAtUtc)
+                    .FirstOrDefault(),
+                db.DataRefreshJobs
+                    .Where(job => job.DatasetId == x.Id)
+                    .OrderByDescending(job => job.StartedAtUtc)
+                    .Select(job => (DataRefreshStatus?)job.Status)
+                    .FirstOrDefault()))
             .ToListAsync(cancellationToken);
     }
 

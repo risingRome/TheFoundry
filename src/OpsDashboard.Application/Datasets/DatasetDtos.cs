@@ -28,7 +28,9 @@ public sealed record DatasetListItemDto(
     DatasetStatus Status,
     int RowCount,
     int ColumnCount,
-    decimal DatasetQualityScore);
+    decimal DatasetQualityScore,
+    DateTime? LastRefreshTimeUtc,
+    DataRefreshStatus? LastRefreshStatus);
 
 public sealed record DatasetDetailsDto(
     int Id,
